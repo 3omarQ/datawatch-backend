@@ -14,7 +14,7 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { OAuthDto } from './dto/oauth.dto';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
-import { Provider, User } from '../../generated/prisma/client';
+import { Provider, User } from '../generated/prisma/client';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 

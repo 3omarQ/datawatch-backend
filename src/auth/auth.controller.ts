@@ -17,7 +17,7 @@ import { VerifyEmailDto } from './dto/verify-email.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { OAuthDto } from './dto/oauth.dto';
-import type { User } from '../../generated/prisma/client';
+import type { User } from '../generated/prisma/client';
 
 @Controller('auth')
 export class AuthController {

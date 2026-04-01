@@ -18,9 +18,71 @@ export const Provider = {
 export type Provider = (typeof Provider)[keyof typeof Provider]
 
 
+export const ExtractorType = {
+  SMART: 'SMART',
+  BASIC: 'BASIC'
+} as const
+
+export type ExtractorType = (typeof ExtractorType)[keyof typeof ExtractorType]
+
+
+export const OutputFormat = {
+  JSON: 'JSON',
+  MD: 'MD',
+  TXT: 'TXT'
+} as const
+
+export type OutputFormat = (typeof OutputFormat)[keyof typeof OutputFormat]
+
+
 export const Role = {
   USER: 'USER',
   ADMIN: 'ADMIN'
 } as const
 
 export type Role = (typeof Role)[keyof typeof Role]
+
+
+export const UrlStatus = {
+  ACTIVE: 'ACTIVE',
+  INACTIVE: 'INACTIVE'
+} as const
+
+export type UrlStatus = (typeof UrlStatus)[keyof typeof UrlStatus]
+
+
+export const JobStatus = {
+  ACTIVE: 'ACTIVE',
+  PAUSED: 'PAUSED'
+} as const
+
+export type JobStatus = (typeof JobStatus)[keyof typeof JobStatus]
+
+
+export const ExecutionStatus = {
+  PENDING: 'PENDING',
+  RUNNING: 'RUNNING',
+  DONE: 'DONE',
+  FAILED: 'FAILED'
+} as const
+
+export type ExecutionStatus = (typeof ExecutionStatus)[keyof typeof ExecutionStatus]
+
+
+export const LogLevel = {
+  INFO: 'INFO',
+  WARN: 'WARN',
+  ERROR: 'ERROR',
+  DEBUG: 'DEBUG'
+} as const
+
+export type LogLevel = (typeof LogLevel)[keyof typeof LogLevel]
+
+
+export const NotificationType = {
+  EXECUTION_DONE: 'EXECUTION_DONE',
+  EXECUTION_FAILED: 'EXECUTION_FAILED',
+  EXECUTION_DIFF: 'EXECUTION_DIFF'
+} as const
+
+export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType]

@@ -1,18 +1,62 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "commonjs"
 }
 
 datasource db {
   provider = "postgresql"
-  //url      = env("DATABASE_URL")
 }
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum Provider {
+  LOCAL
+  GOOGLE
+  GITHUB
+}
+
+enum ExtractorType {
+  SMART
+  BASIC
+}
+
+enum OutputFormat {
+  JSON
+  MD
+  TXT
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum UrlStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum JobStatus {
+  ACTIVE
+  PAUSED
+}
+
+enum ExecutionStatus {
+  PENDING
+  RUNNING
+  DONE
+  FAILED
+}
+
+enum LogLevel {
+  INFO
+  WARN
+  ERROR
+  DEBUG
+}
+
+// ─── Auth Models ──────────────────────────────────────────────────────────────
 
 model User {
   id                String   @id @default(uuid())
@@ -29,6 +73,10 @@ model User {
 
   verificationCodes VerificationCode[]
   passwordResets    PasswordReset[]
+  targetUrls        TargetUrl[]
+  notifications     Notification[]
+
+  notifyByEmail Boolean @default(false)
 
   @@map("users")
 }
@@ -39,7 +87,8 @@ model VerificationCode {
   userId    String
   expiresAt DateTime
   createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("verification_codes")
 }
@@ -51,18 +100,125 @@ model PasswordReset {
   expiresAt DateTime
   used      Boolean  @default(false)
   createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("password_resets")
 }
 
-enum Provider {
-  LOCAL
-  GOOGLE
-  GITHUB
+// ─── Scraping Models ──────────────────────────────────────────────────────────
+
+model TargetUrl {
+  id        String    @id @default(uuid())
+  url       String
+  baseUrl   String?
+  name      String
+  status    UrlStatus @default(ACTIVE)
+  userId    String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  datapoints Datapoint[]
+
+  @@unique([url, userId])
+  @@map("target_urls")
 }
 
-enum Role {
-  USER
-  ADMIN
+model Datapoint {
+  id          String   @id @default(uuid())
+  name        String
+  path        String
+  fieldNames  String?
+  targetUrlId String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  targetUrl TargetUrl @relation(fields: [targetUrlId], references: [id], onDelete: Cascade)
+  jobs      Job[]
+
+  @@map("datapoints")
+}
+
+model Job {
+  id            String    @id @default(uuid())
+  status        JobStatus @default(ACTIVE)
+  definition    String    @default("")
+  scheduleStart DateTime?
+  cron          String?
+  datapointId   String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  extractorType ExtractorType @default(BASIC)
+  outputFormat  OutputFormat  @default(JSON)
+
+  webhookUrl String?
+
+  notifyOnFinish Boolean @default(true)
+  notifyOnDiff   Boolean @default(true)
+  notifyOnFail   Boolean @default(true)
+
+  datapoint  Datapoint      @relation(fields: [datapointId], references: [id], onDelete: Cascade)
+  executions JobExecution[]
+
+  @@map("jobs")
+}
+
+model Notification {
+  id          String           @id @default(uuid())
+  userId      String
+  jobId       String?
+  executionId String?
+  type        NotificationType
+  title       String
+  body        String
+  read        Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum NotificationType {
+  EXECUTION_DONE
+  EXECUTION_FAILED
+  EXECUTION_DIFF
+}
+
+model JobExecution {
+  id         String          @id @default(uuid())
+  status     ExecutionStatus @default(PENDING)
+  startedAt  DateTime?
+  finishedAt DateTime?
+  jobId      String
+  createdAt  DateTime        @default(now())
+
+  job     Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  logs    Log[]
+  results Result[]
+
+  @@map("job_executions")
+}
+
+model Log {
+  id          String   @id @default(uuid())
+  level       LogLevel
+  message     String
+  date        DateTime @default(now())
+  executionId String
+
+  execution JobExecution @relation(fields: [executionId], references: [id], onDelete: Cascade)
+
+  @@map("logs")
+}
+
+model Result {
+  id          String   @id @default(uuid())
+  date        DateTime @default(now())
+  definition  Json
+  executionId String
+
+  execution JobExecution @relation(fields: [executionId], references: [id], onDelete: Cascade)
+
+  @@map("results")
 }

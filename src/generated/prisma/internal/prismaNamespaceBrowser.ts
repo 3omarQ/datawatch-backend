@@ -53,7 +53,14 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   User: 'User',
   VerificationCode: 'VerificationCode',
-  PasswordReset: 'PasswordReset'
+  PasswordReset: 'PasswordReset',
+  TargetUrl: 'TargetUrl',
+  Datapoint: 'Datapoint',
+  Job: 'Job',
+  Notification: 'Notification',
+  JobExecution: 'JobExecution',
+  Log: 'Log',
+  Result: 'Result'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -83,7 +90,8 @@ export const UserScalarFieldEnum = {
   image: 'image',
   role: 'role',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  notifyByEmail: 'notifyByEmail'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -112,12 +120,114 @@ export const PasswordResetScalarFieldEnum = {
 export type PasswordResetScalarFieldEnum = (typeof PasswordResetScalarFieldEnum)[keyof typeof PasswordResetScalarFieldEnum]
 
 
+export const TargetUrlScalarFieldEnum = {
+  id: 'id',
+  url: 'url',
+  baseUrl: 'baseUrl',
+  name: 'name',
+  status: 'status',
+  userId: 'userId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TargetUrlScalarFieldEnum = (typeof TargetUrlScalarFieldEnum)[keyof typeof TargetUrlScalarFieldEnum]
+
+
+export const DatapointScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  path: 'path',
+  fieldNames: 'fieldNames',
+  targetUrlId: 'targetUrlId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DatapointScalarFieldEnum = (typeof DatapointScalarFieldEnum)[keyof typeof DatapointScalarFieldEnum]
+
+
+export const JobScalarFieldEnum = {
+  id: 'id',
+  status: 'status',
+  definition: 'definition',
+  scheduleStart: 'scheduleStart',
+  cron: 'cron',
+  datapointId: 'datapointId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  extractorType: 'extractorType',
+  outputFormat: 'outputFormat',
+  webhookUrl: 'webhookUrl',
+  notifyOnFinish: 'notifyOnFinish',
+  notifyOnDiff: 'notifyOnDiff',
+  notifyOnFail: 'notifyOnFail'
+} as const
+
+export type JobScalarFieldEnum = (typeof JobScalarFieldEnum)[keyof typeof JobScalarFieldEnum]
+
+
+export const NotificationScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  jobId: 'jobId',
+  executionId: 'executionId',
+  type: 'type',
+  title: 'title',
+  body: 'body',
+  read: 'read',
+  createdAt: 'createdAt'
+} as const
+
+export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
+
+
+export const JobExecutionScalarFieldEnum = {
+  id: 'id',
+  status: 'status',
+  startedAt: 'startedAt',
+  finishedAt: 'finishedAt',
+  jobId: 'jobId',
+  createdAt: 'createdAt'
+} as const
+
+export type JobExecutionScalarFieldEnum = (typeof JobExecutionScalarFieldEnum)[keyof typeof JobExecutionScalarFieldEnum]
+
+
+export const LogScalarFieldEnum = {
+  id: 'id',
+  level: 'level',
+  message: 'message',
+  date: 'date',
+  executionId: 'executionId'
+} as const
+
+export type LogScalarFieldEnum = (typeof LogScalarFieldEnum)[keyof typeof LogScalarFieldEnum]
+
+
+export const ResultScalarFieldEnum = {
+  id: 'id',
+  date: 'date',
+  definition: 'definition',
+  executionId: 'executionId'
+} as const
+
+export type ResultScalarFieldEnum = (typeof ResultScalarFieldEnum)[keyof typeof ResultScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
 } as const
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const QueryMode = {
@@ -134,4 +244,13 @@ export const NullsOrder = {
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 

@@ -57,4 +57,37 @@ export class EmailService {
       `,
     });
   }
+  async sendNotificationEmail(
+    email: string,
+    name: string,
+    title: string,
+    body: string,
+    jobId?: string | null,
+  ) {
+    const jobUrl = jobId
+      ? `${this.configService.get('FRONTEND_URL')}/dashboard/jobs/${jobId}`
+      : null;
+
+    await this.transporter.sendMail({
+      from: this.configService.get('SMTP_FROM'),
+      to: email,
+      subject: title,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2>Hi ${name},</h2>
+          <p>${body}</p>
+          ${jobUrl ? `
+            <a href="${jobUrl}" style="display: inline-block; padding: 12px 24px; background: #2dd4d4; color: white; text-decoration: none; border-radius: 8px; margin: 16px 0;">
+              View Job
+            </a>
+          ` : ''}
+          <p style="color: #888; font-size: 12px; margin-top: 32px;">
+            You're receiving this because you enabled email notifications. 
+            You can disable them in your account settings.
+          </p>
+        </div>
+      `,
+    });
+  }
+  
 }

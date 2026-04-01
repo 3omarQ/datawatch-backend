@@ -1,0 +1,3 @@
+export const MAX_NOTIFICATIONS_PER_USER = 50;
+export const WEBHOOK_TIMEOUT_MS = 5000;
+export const WEBHOOK_MAX_RETRIES = 3;
