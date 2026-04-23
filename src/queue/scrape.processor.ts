@@ -30,14 +30,17 @@ export class ScrapeProcessor extends WorkerHost {
     const execution = await this.jobExecutionsService.initExecution(jobId, executionId);
 
     try {
-      const { url, path, extractorType, outputFormat } =
+      const { url, path, extractorType, outputFormat, fieldNames, paginationSelector, maxPages } =
         await this.jobExecutionsService.fetchJobTarget(jobId);
 
       const scraper = this.scraperFactory.get(extractorType);
-      const formatter = this.formatterFactory.get(outputFormat);
+      console.log('fieldNames in processor:', fieldNames);
+      const formatter = this.formatterFactory.get(outputFormat, fieldNames);
+      console.log('formatter has fieldNames bound:', formatter.format.toString().includes('fieldNames'));
 
-      const raw = await scraper.scrape(url, path);
+      const raw = await scraper.scrape(url, path, paginationSelector, maxPages);
       const result = formatter.format(raw);
+      console.log('formatted result first 100 chars:', result.slice(0, 100));
 
       await this.jobExecutionsService.completeExecution(execution.id, jobId, result);
     } catch (error) {

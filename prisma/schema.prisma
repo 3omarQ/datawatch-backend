@@ -25,6 +25,7 @@ enum OutputFormat {
   JSON
   MD
   TXT
+  CSV
 }
 
 enum Role {
@@ -126,10 +127,14 @@ model TargetUrl {
 }
 
 model Datapoint {
-  id          String   @id @default(uuid())
-  name        String
-  path        String
-  fieldNames  String?
+  id   String @id @default(uuid())
+  name String
+
+  path               String
+  fieldNames         String?
+  paginationSelector String?
+  maxPages           Int?
+
   targetUrlId String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

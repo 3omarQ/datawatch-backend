@@ -1,3 +1,3 @@
 export interface IFormatter {
-  format(raw: string): string;
+  format(raw: string, fieldNames?: string[]): string;
 }

@@ -6,6 +6,7 @@ import { TxtFormatter } from './formatters/txt.formatter';
 import { JsonFormatter } from './formatters/json.formatter';
 import { MdFormatter } from './formatters/md.formatter';
 import { FormatterFactoryService } from './formatter-factory.service';
+import { CsvFormatter } from './formatters/csv.formatter';
 
 @Module({
   providers: [
@@ -15,8 +16,9 @@ import { FormatterFactoryService } from './formatter-factory.service';
     TxtFormatter,
     JsonFormatter,
     MdFormatter,
+    CsvFormatter,
     FormatterFactoryService,
   ],
   exports: [ScraperFactoryService, FormatterFactoryService],
 })
-export class ScraperModule {}
+export class ScraperModule { }

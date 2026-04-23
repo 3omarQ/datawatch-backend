@@ -10,10 +10,43 @@ type CheerioElements = ReturnType<CheerioRoot>;
 export class BasicScraperService implements IScraper {
   private readonly logger = new Logger(BasicScraperService.name);
 
-  async scrape(url: string, path: string): Promise<string> {
-    const html = await this.fetchHtml(url);
-    const raw = this.extract(html, path);
-    return this.format(raw);
+  async scrape(url: string, path: string, paginationSelector?: string, maxPages?: number): Promise<string> {
+    if (!paginationSelector || !maxPages) {
+      const html = await this.fetchHtml(url);
+      return this.format(this.extract(html, path));
+    }
+    return this.scrapeWithPagination(url, path, paginationSelector, maxPages);
+  }
+
+  private async scrapeWithPagination(
+    url: string,
+    path: string,
+    paginationSelector: string,
+    maxPages: number
+  ): Promise<string> {
+    const allRows: string[] = [];
+    let currentUrl: string | null = url;
+    let page = 0;
+
+    while (currentUrl && page < maxPages) {
+      this.logger.log(`[Basic] Page ${page + 1}: ${currentUrl}`);
+      const html = await this.fetchHtml(currentUrl);
+      const $ = cheerio.load(html);
+      const raw = this.extract(html, path);
+      if (raw) allRows.push(raw);
+
+      // find next page URL
+      const nextEl = $(paginationSelector).first();
+      const nextHref = nextEl.attr('href');
+      if (!nextHref) break;
+
+      currentUrl = nextHref.startsWith('http')
+        ? nextHref
+        : new URL(nextHref, currentUrl).href;
+      page++;
+    }
+
+    return this.format(allRows.join('\n'));
   }
 
   private async fetchHtml(url: string): Promise<string> {
@@ -27,13 +60,38 @@ export class BasicScraperService implements IScraper {
 
   private extract(html: string, path: string): string {
     const $ = cheerio.load(html);
-    const elements = $(path);
-    if (elements.length === 0)
-      throw new Error(`No elements found for selector: "${path}"`);
-    const texts = this.extractTexts($, elements);
-    if (texts.length === 0)
-      throw new Error(`Elements found for "${path}" but all were empty.`);
-    return texts.join('\n');
+    const selectors = path.split(',').map((s) => s.trim()).filter(Boolean);
+
+    if (selectors.length === 1) {
+      const elements = $(selectors[0]);
+      if (elements.length === 0)
+        throw new Error(`No elements found for selector: "${selectors[0]}"`);
+      const texts = this.extractTexts($, elements);
+      if (texts.length === 0)
+        throw new Error(`Elements found for "${selectors[0]}" but all were empty.`);
+      return texts.join('\n');
+    }
+
+    // multi-field: extract each selector, zip rows by index
+    const columns = selectors.map((sel) => {
+      const texts: string[] = [];
+      $(sel).each((_, el) => {
+        const text = $(el).text().trim();
+        if (text) texts.push(text);
+      });
+      return texts;
+    });
+
+    return this.zipColumns(columns);
+  }
+
+  private zipColumns(columns: string[][]): string {
+    const rowCount = Math.max(...columns.map((c) => c.length));
+    const rows: string[] = [];
+    for (let i = 0; i < rowCount; i++) {
+      rows.push(columns.map((col) => col[i] ?? '').join(' | '));
+    }
+    return rows.join('\n');
   }
 
   private extractTexts($: CheerioRoot, elements: CheerioElements): string[] {

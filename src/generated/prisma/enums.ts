@@ -29,7 +29,8 @@ export type ExtractorType = (typeof ExtractorType)[keyof typeof ExtractorType]
 export const OutputFormat = {
   JSON: 'JSON',
   MD: 'MD',
-  TXT: 'TXT'
+  TXT: 'TXT',
+  CSV: 'CSV'
 } as const
 
 export type OutputFormat = (typeof OutputFormat)[keyof typeof OutputFormat]

@@ -15,7 +15,7 @@ export class JobExecutionsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly eventEmitter: EventEmitter2,
-  ) {}
+  ) { }
 
   async findOne(jobId: string, executionId: string, userId: string) {
     await this.verifyOwnership(jobId, userId);
@@ -24,6 +24,7 @@ export class JobExecutionsService {
       include: {
         results: { orderBy: { date: 'desc' } },
         logs: { orderBy: { date: 'asc' } },
+        job: { select: { outputFormat: true } },
         _count: { select: { logs: true, results: true } },
       },
     });
@@ -45,12 +46,18 @@ export class JobExecutionsService {
       include: { datapoint: { include: { targetUrl: true } } },
     });
     if (!job) throw new NotFoundException(`Job ${jobId} not found.`);
+    const fieldNames = job.datapoint.fieldNames
+      ? JSON.parse(job.datapoint.fieldNames as string)
+      : undefined;
+    console.log('fieldNames from DB:', fieldNames);
     return {
       url: job.datapoint.targetUrl.url,
       path: job.datapoint.path,
+      fieldNames: job.datapoint.fieldNames ? JSON.parse(job.datapoint.fieldNames) : undefined,
+      paginationSelector: job.datapoint.paginationSelector ?? undefined,
+      maxPages: job.datapoint.maxPages ?? undefined,
       extractorType: job.extractorType,
       outputFormat: job.outputFormat,
-
     };
   }
 
@@ -77,7 +84,13 @@ export class JobExecutionsService {
     return this.prisma.jobExecution.findMany({
       where: { jobId },
       orderBy: { createdAt: 'desc' },
-      include: { _count: { select: { logs: true, results: true } } },
+      include: {
+        logs: {
+          take: 1,
+          orderBy: { date: 'desc' }
+        },
+        _count: { select: { logs: true, results: true } }
+      },
     });
   }
 

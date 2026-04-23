@@ -20,8 +20,18 @@ export type DatapointModel = runtime.Types.Result.DefaultSelection<Prisma.$Datap
 
 export type AggregateDatapoint = {
   _count: DatapointCountAggregateOutputType | null
+  _avg: DatapointAvgAggregateOutputType | null
+  _sum: DatapointSumAggregateOutputType | null
   _min: DatapointMinAggregateOutputType | null
   _max: DatapointMaxAggregateOutputType | null
+}
+
+export type DatapointAvgAggregateOutputType = {
+  maxPages: number | null
+}
+
+export type DatapointSumAggregateOutputType = {
+  maxPages: number | null
 }
 
 export type DatapointMinAggregateOutputType = {
@@ -29,6 +39,8 @@ export type DatapointMinAggregateOutputType = {
   name: string | null
   path: string | null
   fieldNames: string | null
+  paginationSelector: string | null
+  maxPages: number | null
   targetUrlId: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -39,6 +51,8 @@ export type DatapointMaxAggregateOutputType = {
   name: string | null
   path: string | null
   fieldNames: string | null
+  paginationSelector: string | null
+  maxPages: number | null
   targetUrlId: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -49,6 +63,8 @@ export type DatapointCountAggregateOutputType = {
   name: number
   path: number
   fieldNames: number
+  paginationSelector: number
+  maxPages: number
   targetUrlId: number
   createdAt: number
   updatedAt: number
@@ -56,11 +72,21 @@ export type DatapointCountAggregateOutputType = {
 }
 
 
+export type DatapointAvgAggregateInputType = {
+  maxPages?: true
+}
+
+export type DatapointSumAggregateInputType = {
+  maxPages?: true
+}
+
 export type DatapointMinAggregateInputType = {
   id?: true
   name?: true
   path?: true
   fieldNames?: true
+  paginationSelector?: true
+  maxPages?: true
   targetUrlId?: true
   createdAt?: true
   updatedAt?: true
@@ -71,6 +97,8 @@ export type DatapointMaxAggregateInputType = {
   name?: true
   path?: true
   fieldNames?: true
+  paginationSelector?: true
+  maxPages?: true
   targetUrlId?: true
   createdAt?: true
   updatedAt?: true
@@ -81,6 +109,8 @@ export type DatapointCountAggregateInputType = {
   name?: true
   path?: true
   fieldNames?: true
+  paginationSelector?: true
+  maxPages?: true
   targetUrlId?: true
   createdAt?: true
   updatedAt?: true
@@ -125,6 +155,18 @@ export type DatapointAggregateArgs<ExtArgs extends runtime.Types.Extensions.Inte
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: DatapointAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: DatapointSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: DatapointMinAggregateInputType
@@ -155,6 +197,8 @@ export type DatapointGroupByArgs<ExtArgs extends runtime.Types.Extensions.Intern
   take?: number
   skip?: number
   _count?: DatapointCountAggregateInputType | true
+  _avg?: DatapointAvgAggregateInputType
+  _sum?: DatapointSumAggregateInputType
   _min?: DatapointMinAggregateInputType
   _max?: DatapointMaxAggregateInputType
 }
@@ -164,10 +208,14 @@ export type DatapointGroupByOutputType = {
   name: string
   path: string
   fieldNames: string | null
+  paginationSelector: string | null
+  maxPages: number | null
   targetUrlId: string
   createdAt: Date
   updatedAt: Date
   _count: DatapointCountAggregateOutputType | null
+  _avg: DatapointAvgAggregateOutputType | null
+  _sum: DatapointSumAggregateOutputType | null
   _min: DatapointMinAggregateOutputType | null
   _max: DatapointMaxAggregateOutputType | null
 }
@@ -195,6 +243,8 @@ export type DatapointWhereInput = {
   name?: Prisma.StringFilter<"Datapoint"> | string
   path?: Prisma.StringFilter<"Datapoint"> | string
   fieldNames?: Prisma.StringNullableFilter<"Datapoint"> | string | null
+  paginationSelector?: Prisma.StringNullableFilter<"Datapoint"> | string | null
+  maxPages?: Prisma.IntNullableFilter<"Datapoint"> | number | null
   targetUrlId?: Prisma.StringFilter<"Datapoint"> | string
   createdAt?: Prisma.DateTimeFilter<"Datapoint"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Datapoint"> | Date | string
@@ -207,6 +257,8 @@ export type DatapointOrderByWithRelationInput = {
   name?: Prisma.SortOrder
   path?: Prisma.SortOrder
   fieldNames?: Prisma.SortOrderInput | Prisma.SortOrder
+  paginationSelector?: Prisma.SortOrderInput | Prisma.SortOrder
+  maxPages?: Prisma.SortOrderInput | Prisma.SortOrder
   targetUrlId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -222,6 +274,8 @@ export type DatapointWhereUniqueInput = Prisma.AtLeast<{
   name?: Prisma.StringFilter<"Datapoint"> | string
   path?: Prisma.StringFilter<"Datapoint"> | string
   fieldNames?: Prisma.StringNullableFilter<"Datapoint"> | string | null
+  paginationSelector?: Prisma.StringNullableFilter<"Datapoint"> | string | null
+  maxPages?: Prisma.IntNullableFilter<"Datapoint"> | number | null
   targetUrlId?: Prisma.StringFilter<"Datapoint"> | string
   createdAt?: Prisma.DateTimeFilter<"Datapoint"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Datapoint"> | Date | string
@@ -234,12 +288,16 @@ export type DatapointOrderByWithAggregationInput = {
   name?: Prisma.SortOrder
   path?: Prisma.SortOrder
   fieldNames?: Prisma.SortOrderInput | Prisma.SortOrder
+  paginationSelector?: Prisma.SortOrderInput | Prisma.SortOrder
+  maxPages?: Prisma.SortOrderInput | Prisma.SortOrder
   targetUrlId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.DatapointCountOrderByAggregateInput
+  _avg?: Prisma.DatapointAvgOrderByAggregateInput
   _max?: Prisma.DatapointMaxOrderByAggregateInput
   _min?: Prisma.DatapointMinOrderByAggregateInput
+  _sum?: Prisma.DatapointSumOrderByAggregateInput
 }
 
 export type DatapointScalarWhereWithAggregatesInput = {
@@ -250,6 +308,8 @@ export type DatapointScalarWhereWithAggregatesInput = {
   name?: Prisma.StringWithAggregatesFilter<"Datapoint"> | string
   path?: Prisma.StringWithAggregatesFilter<"Datapoint"> | string
   fieldNames?: Prisma.StringNullableWithAggregatesFilter<"Datapoint"> | string | null
+  paginationSelector?: Prisma.StringNullableWithAggregatesFilter<"Datapoint"> | string | null
+  maxPages?: Prisma.IntNullableWithAggregatesFilter<"Datapoint"> | number | null
   targetUrlId?: Prisma.StringWithAggregatesFilter<"Datapoint"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Datapoint"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Datapoint"> | Date | string
@@ -260,6 +320,8 @@ export type DatapointCreateInput = {
   name: string
   path: string
   fieldNames?: string | null
+  paginationSelector?: string | null
+  maxPages?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   targetUrl: Prisma.TargetUrlCreateNestedOneWithoutDatapointsInput
@@ -271,6 +333,8 @@ export type DatapointUncheckedCreateInput = {
   name: string
   path: string
   fieldNames?: string | null
+  paginationSelector?: string | null
+  maxPages?: number | null
   targetUrlId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -282,6 +346,8 @@ export type DatapointUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   path?: Prisma.StringFieldUpdateOperationsInput | string
   fieldNames?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paginationSelector?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxPages?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   targetUrl?: Prisma.TargetUrlUpdateOneRequiredWithoutDatapointsNestedInput
@@ -293,6 +359,8 @@ export type DatapointUncheckedUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   path?: Prisma.StringFieldUpdateOperationsInput | string
   fieldNames?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paginationSelector?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxPages?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   targetUrlId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -304,6 +372,8 @@ export type DatapointCreateManyInput = {
   name: string
   path: string
   fieldNames?: string | null
+  paginationSelector?: string | null
+  maxPages?: number | null
   targetUrlId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -314,6 +384,8 @@ export type DatapointUpdateManyMutationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   path?: Prisma.StringFieldUpdateOperationsInput | string
   fieldNames?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paginationSelector?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxPages?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -323,6 +395,8 @@ export type DatapointUncheckedUpdateManyInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   path?: Prisma.StringFieldUpdateOperationsInput | string
   fieldNames?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paginationSelector?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxPages?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   targetUrlId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -343,9 +417,15 @@ export type DatapointCountOrderByAggregateInput = {
   name?: Prisma.SortOrder
   path?: Prisma.SortOrder
   fieldNames?: Prisma.SortOrder
+  paginationSelector?: Prisma.SortOrder
+  maxPages?: Prisma.SortOrder
   targetUrlId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+}
+
+export type DatapointAvgOrderByAggregateInput = {
+  maxPages?: Prisma.SortOrder
 }
 
 export type DatapointMaxOrderByAggregateInput = {
@@ -353,6 +433,8 @@ export type DatapointMaxOrderByAggregateInput = {
   name?: Prisma.SortOrder
   path?: Prisma.SortOrder
   fieldNames?: Prisma.SortOrder
+  paginationSelector?: Prisma.SortOrder
+  maxPages?: Prisma.SortOrder
   targetUrlId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -363,9 +445,15 @@ export type DatapointMinOrderByAggregateInput = {
   name?: Prisma.SortOrder
   path?: Prisma.SortOrder
   fieldNames?: Prisma.SortOrder
+  paginationSelector?: Prisma.SortOrder
+  maxPages?: Prisma.SortOrder
   targetUrlId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+}
+
+export type DatapointSumOrderByAggregateInput = {
+  maxPages?: Prisma.SortOrder
 }
 
 export type DatapointScalarRelationFilter = {
@@ -415,6 +503,14 @@ export type DatapointUncheckedUpdateManyWithoutTargetUrlNestedInput = {
   deleteMany?: Prisma.DatapointScalarWhereInput | Prisma.DatapointScalarWhereInput[]
 }
 
+export type NullableIntFieldUpdateOperationsInput = {
+  set?: number | null
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
+}
+
 export type DatapointCreateNestedOneWithoutJobsInput = {
   create?: Prisma.XOR<Prisma.DatapointCreateWithoutJobsInput, Prisma.DatapointUncheckedCreateWithoutJobsInput>
   connectOrCreate?: Prisma.DatapointCreateOrConnectWithoutJobsInput
@@ -434,6 +530,8 @@ export type DatapointCreateWithoutTargetUrlInput = {
   name: string
   path: string
   fieldNames?: string | null
+  paginationSelector?: string | null
+  maxPages?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   jobs?: Prisma.JobCreateNestedManyWithoutDatapointInput
@@ -444,6 +542,8 @@ export type DatapointUncheckedCreateWithoutTargetUrlInput = {
   name: string
   path: string
   fieldNames?: string | null
+  paginationSelector?: string | null
+  maxPages?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   jobs?: Prisma.JobUncheckedCreateNestedManyWithoutDatapointInput
@@ -483,6 +583,8 @@ export type DatapointScalarWhereInput = {
   name?: Prisma.StringFilter<"Datapoint"> | string
   path?: Prisma.StringFilter<"Datapoint"> | string
   fieldNames?: Prisma.StringNullableFilter<"Datapoint"> | string | null
+  paginationSelector?: Prisma.StringNullableFilter<"Datapoint"> | string | null
+  maxPages?: Prisma.IntNullableFilter<"Datapoint"> | number | null
   targetUrlId?: Prisma.StringFilter<"Datapoint"> | string
   createdAt?: Prisma.DateTimeFilter<"Datapoint"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Datapoint"> | Date | string
@@ -493,6 +595,8 @@ export type DatapointCreateWithoutJobsInput = {
   name: string
   path: string
   fieldNames?: string | null
+  paginationSelector?: string | null
+  maxPages?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   targetUrl: Prisma.TargetUrlCreateNestedOneWithoutDatapointsInput
@@ -503,6 +607,8 @@ export type DatapointUncheckedCreateWithoutJobsInput = {
   name: string
   path: string
   fieldNames?: string | null
+  paginationSelector?: string | null
+  maxPages?: number | null
   targetUrlId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -529,6 +635,8 @@ export type DatapointUpdateWithoutJobsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   path?: Prisma.StringFieldUpdateOperationsInput | string
   fieldNames?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paginationSelector?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxPages?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   targetUrl?: Prisma.TargetUrlUpdateOneRequiredWithoutDatapointsNestedInput
@@ -539,6 +647,8 @@ export type DatapointUncheckedUpdateWithoutJobsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   path?: Prisma.StringFieldUpdateOperationsInput | string
   fieldNames?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paginationSelector?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxPages?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   targetUrlId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -549,6 +659,8 @@ export type DatapointCreateManyTargetUrlInput = {
   name: string
   path: string
   fieldNames?: string | null
+  paginationSelector?: string | null
+  maxPages?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -558,6 +670,8 @@ export type DatapointUpdateWithoutTargetUrlInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   path?: Prisma.StringFieldUpdateOperationsInput | string
   fieldNames?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paginationSelector?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxPages?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   jobs?: Prisma.JobUpdateManyWithoutDatapointNestedInput
@@ -568,6 +682,8 @@ export type DatapointUncheckedUpdateWithoutTargetUrlInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   path?: Prisma.StringFieldUpdateOperationsInput | string
   fieldNames?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paginationSelector?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxPages?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   jobs?: Prisma.JobUncheckedUpdateManyWithoutDatapointNestedInput
@@ -578,6 +694,8 @@ export type DatapointUncheckedUpdateManyWithoutTargetUrlInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   path?: Prisma.StringFieldUpdateOperationsInput | string
   fieldNames?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paginationSelector?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxPages?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -618,6 +736,8 @@ export type DatapointSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   name?: boolean
   path?: boolean
   fieldNames?: boolean
+  paginationSelector?: boolean
+  maxPages?: boolean
   targetUrlId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -631,6 +751,8 @@ export type DatapointSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   name?: boolean
   path?: boolean
   fieldNames?: boolean
+  paginationSelector?: boolean
+  maxPages?: boolean
   targetUrlId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -642,6 +764,8 @@ export type DatapointSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   name?: boolean
   path?: boolean
   fieldNames?: boolean
+  paginationSelector?: boolean
+  maxPages?: boolean
   targetUrlId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -653,12 +777,14 @@ export type DatapointSelectScalar = {
   name?: boolean
   path?: boolean
   fieldNames?: boolean
+  paginationSelector?: boolean
+  maxPages?: boolean
   targetUrlId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type DatapointOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "path" | "fieldNames" | "targetUrlId" | "createdAt" | "updatedAt", ExtArgs["result"]["datapoint"]>
+export type DatapointOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "path" | "fieldNames" | "paginationSelector" | "maxPages" | "targetUrlId" | "createdAt" | "updatedAt", ExtArgs["result"]["datapoint"]>
 export type DatapointInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   targetUrl?: boolean | Prisma.TargetUrlDefaultArgs<ExtArgs>
   jobs?: boolean | Prisma.Datapoint$jobsArgs<ExtArgs>
@@ -682,6 +808,8 @@ export type $DatapointPayload<ExtArgs extends runtime.Types.Extensions.InternalA
     name: string
     path: string
     fieldNames: string | null
+    paginationSelector: string | null
+    maxPages: number | null
     targetUrlId: string
     createdAt: Date
     updatedAt: Date
@@ -1114,6 +1242,8 @@ export interface DatapointFieldRefs {
   readonly name: Prisma.FieldRef<"Datapoint", 'String'>
   readonly path: Prisma.FieldRef<"Datapoint", 'String'>
   readonly fieldNames: Prisma.FieldRef<"Datapoint", 'String'>
+  readonly paginationSelector: Prisma.FieldRef<"Datapoint", 'String'>
+  readonly maxPages: Prisma.FieldRef<"Datapoint", 'Int'>
   readonly targetUrlId: Prisma.FieldRef<"Datapoint", 'String'>
   readonly createdAt: Prisma.FieldRef<"Datapoint", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Datapoint", 'DateTime'>

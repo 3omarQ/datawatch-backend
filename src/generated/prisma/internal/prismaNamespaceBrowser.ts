@@ -139,6 +139,8 @@ export const DatapointScalarFieldEnum = {
   name: 'name',
   path: 'path',
   fieldNames: 'fieldNames',
+  paginationSelector: 'paginationSelector',
+  maxPages: 'maxPages',
   targetUrlId: 'targetUrlId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'

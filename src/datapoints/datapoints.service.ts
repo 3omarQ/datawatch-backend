@@ -15,8 +15,8 @@ export class DatapointsService {
     private readonly prisma: PrismaService,
     private readonly targetUrlsService: TargetUrlsService,
     private readonly jobSchedulerService: JobSchedulerService,
-    
-  ) {}
+
+  ) { }
 
   async findAllByTargetUrl(targetUrlId: string, userId: string) {
     // Verifies ownership
@@ -40,7 +40,7 @@ export class DatapointsService {
           select: {
             id: true,
             url: true,
-            baseUrl:true,
+            baseUrl: true,
             name: true,
             status: true,
           },
@@ -60,14 +60,36 @@ export class DatapointsService {
   }
 
   async create(userId: string, dto: CreateDatapointDto) {
-    // Verifies ownership of the target URL
+    // verify targetUrl belongs to user
     await this.targetUrlsService.findOneByUser(dto.targetUrlId, userId);
-    return this.prisma.datapoint.create({ data: dto });
+
+    return this.prisma.datapoint.create({
+      data: {
+        name: dto.name,
+        path: dto.path,
+        fieldNames: dto.fieldNames?.length
+          ? JSON.stringify(dto.fieldNames)
+          : null,
+        paginationSelector: dto.paginationSelector ?? null,
+        maxPages: dto.maxPages ?? null,
+
+        targetUrlId: dto.targetUrlId,
+      },
+    });
   }
 
   async update(id: string, userId: string, dto: UpdateDatapointDto) {
     await this.findOneByUser(id, userId);
-    return this.prisma.datapoint.update({ where: { id }, data: dto });
+    return this.prisma.datapoint.update({
+      where: { id }, data: {
+        name: dto.name,
+        path: dto.path,
+        fieldNames: dto.fieldNames?.length
+          ? JSON.stringify(dto.fieldNames)
+          : null,
+
+      },
+    });
   }
 
   async remove(id: string, userId: string) {
