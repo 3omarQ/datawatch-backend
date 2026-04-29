@@ -130,7 +130,18 @@ export class SmartScraperService implements IScraper, OnModuleDestroy {
     const columns = await Promise.all(
       selectors.map((sel) =>
         page.$$eval(sel, (els) =>
-          els.map((el) => (el as HTMLElement).innerText.trim()).filter(Boolean)
+          els
+            .filter((el) => {
+              // walk up the DOM — if any ancestor has display:none, element is hidden
+              let cur: HTMLElement | null = el as HTMLElement;
+              while (cur) {
+                if (getComputedStyle(cur).display === 'none') return false;
+                cur = cur.parentElement;
+              }
+              return true;
+            })
+            .map((el) => (el as HTMLElement).innerText.trim())
+            .filter(Boolean)
         )
       )
     );

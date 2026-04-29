@@ -87,7 +87,8 @@ export class DatapointsService {
         fieldNames: dto.fieldNames?.length
           ? JSON.stringify(dto.fieldNames)
           : null,
-
+        paginationSelector: dto.paginationSelector ?? null,
+        maxPages: dto.maxPages ?? null,
       },
     });
   }
