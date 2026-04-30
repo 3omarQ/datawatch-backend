@@ -205,7 +205,7 @@ export class JobExecutionsService {
     });
   }
 
-  private async saveLog(executionId: string, level: LogLevel, message: string) {
+  async saveLog(executionId: string, level: LogLevel, message: string) {
     const log = await this.prisma.log.create({
       data: { executionId, level, message },
     });

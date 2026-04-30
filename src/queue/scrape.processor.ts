@@ -30,6 +30,9 @@ export class ScrapeProcessor extends WorkerHost {
 
     const execution = await this.jobExecutionsService.initExecution(jobId, executionId);
 
+    const onLog = (message: string) =>
+      this.jobExecutionsService.saveLog(execution.id, 'INFO', message);
+
     try {
       const target = await this.jobExecutionsService.fetchJobTarget(jobId);
       this.logger.log(
@@ -42,7 +45,13 @@ export class ScrapeProcessor extends WorkerHost {
       const formatter = this.formatterFactory.get(target.outputFormat, target.fieldNames);
 
       const scrapeStart = Date.now();
-      const raw = await scraper.scrape(target.url, target.path, target.paginationSelector, target.maxPages);
+      const raw = await scraper.scrape(
+        target.url,
+        target.path,
+        target.paginationSelector,
+        target.maxPages,
+        onLog,
+      );
       const scrapeMs = Date.now() - scrapeStart;
       this.logger.log(`[${jobId}] Scrape done in ${scrapeMs}ms — raw length: ${raw.length} chars`);
 
@@ -51,11 +60,13 @@ export class ScrapeProcessor extends WorkerHost {
 
       await this.jobExecutionsService.completeExecution(execution.id, jobId, result);
       this.logger.log(`[${jobId}] Execution ${execution.id} completed in ${Date.now() - start}ms`);
-
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
       const stack = error instanceof Error ? error.stack : undefined;
-      this.logger.error(`[${jobId}] Execution ${execution.id} failed after ${Date.now() - start}ms — ${message}`, stack);
+      this.logger.error(
+        `[${jobId}] Execution ${execution.id} failed after ${Date.now() - start}ms — ${message}`,
+        stack,
+      );
       await this.jobExecutionsService.failExecution(execution.id, jobId, message);
       throw error;
     }

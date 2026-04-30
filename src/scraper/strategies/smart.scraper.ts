@@ -2,7 +2,7 @@ import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { Browser, Page } from 'puppeteer';
 import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
-import { IScraper } from '../interfaces/scraper.interface';
+import { IScraper, ScraperLogFn } from '../interfaces/scraper.interface';
 
 puppeteer.use(StealthPlugin());
 
@@ -28,35 +28,44 @@ export class SmartScraperService implements IScraper, OnModuleDestroy {
   private readonly logger = new Logger(SmartScraperService.name);
   private browser: Browser | null = null;
 
-  async scrape(url: string, path: string, paginationSelector?: string, maxPages?: number): Promise<string> {
+  async scrape(
+    url: string,
+    path: string,
+    paginationSelector?: string,
+    maxPages?: number,
+    onLog?: ScraperLogFn,
+  ): Promise<string> {
+    const log = (msg: string) => {
+      this.logger.log(msg);
+      onLog?.(msg);
+    };
+
     const page = await this.openPage();
     try {
-      await this.navigate(page, url);
+      await this.navigate(page, url, log);
       if (!paginationSelector || !maxPages) {
-        return await this.extract(page, path);
+        return await this.extract(page, path, log);
       }
-      return await this.extractWithPagination(page, path, paginationSelector, maxPages);
+      return await this.extractWithPagination(page, path, paginationSelector, maxPages, log);
     } finally {
       await page.close();
     }
   }
-  // smart-scraper.service.ts — extractWithPagination replacement
 
   private async extractWithPagination(
     page: Page,
     path: string,
     paginationSelector: string,
-    maxPages: number
+    maxPages: number,
+    log: (msg: string) => void,
   ): Promise<string> {
     const allRows: string[] = [];
 
     for (let i = 0; i < maxPages; i++) {
-      this.logger.log(`[Smart] Extracting page ${i + 1}/${maxPages}`);
-      const raw = await this.extract(page, path);
+      log(`Extracting page ${i + 1}/${maxPages}`);
+      const raw = await this.extract(page, path, log);
       if (raw) allRows.push(raw);
 
-      // ── Find next button ──────────────────────────────────────────────────
-      // Try the user's selector first; fall back to common semantic selectors.
       const FALLBACKS = [
         paginationSelector,
         'a[rel="next"]',
@@ -79,7 +88,7 @@ export class SmartScraperService implements IScraper, OnModuleDestroy {
           });
 
           if (href) {
-            this.logger.log(`[Smart] Next href found via "${sel}": ${href}`);
+            log(`Next page found via "${sel}": ${href}`);
             nextHref = href;
             break;
           }
@@ -89,42 +98,32 @@ export class SmartScraperService implements IScraper, OnModuleDestroy {
       }
 
       if (!nextHref) {
-        this.logger.log(`[Smart] No next button found — stopping at page ${i + 1}`);
+        log(`No next button found — stopping at page ${i + 1}`);
         break;
       }
 
-      // Navigate by URL instead of clicking so the selector position doesn't matter
-      await this.navigate(page, nextHref);
+      await this.navigate(page, nextHref, log);
     }
-    this.logger.log(`[Smart] Pagination complete — ${allRows.length} pages scraped`);
 
+    log(`Pagination complete — ${allRows.length} pages scraped`);
     return this.format(allRows.join('\n'));
   }
-  private async openPage(): Promise<Page> {
-    const browser = await this.getBrowser();
-    const page = await browser.newPage();
-    await page.setViewport(CONFIG.viewport);
-    await page.setDefaultTimeout(CONFIG.timeout);
-    await page.setExtraHTTPHeaders(CONFIG.headers);
-    return page;
-  }
 
-  private async navigate(page: Page, url: string): Promise<void> {
-    this.logger.log(`[Smart] Navigating to: ${url}`);
+  private async navigate(page: Page, url: string, log: (msg: string) => void): Promise<void> {
+    log(`Navigating to: ${url}`);
     const start = Date.now();
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: CONFIG.navigationTimeout });
     await new Promise((r) => setTimeout(r, CONFIG.renderDelay));
-    this.logger.log(`[Smart] Page ready in ${Date.now() - start}ms`);
+    log(`Page ready in ${Date.now() - start}ms`);
   }
 
-  private async extract(page: Page, path: string): Promise<string> {
+  private async extract(page: Page, path: string, log: (msg: string) => void): Promise<string> {
     const selectors = path.split(',').map((s) => s.trim()).filter(Boolean);
 
     if (selectors.length === 1) {
-      this.logger.log(`[Smart] Waiting for selector: ${selectors[0]}`);
-
+      log(`Waiting for selector: ${selectors[0]}`);
       await page.waitForSelector(selectors[0], { timeout: CONFIG.timeout }).catch((e) => {
-        this.logger.warn(`[Smart] waitForSelector timed out for: ${selectors[0]} — ${e.message}`);
+        log(`Selector timed out: ${selectors[0]} — ${e.message}`);
       });
       const start = Date.now();
       const text = await page.$$eval(selectors[0], (els) =>
@@ -134,20 +133,18 @@ export class SmartScraperService implements IScraper, OnModuleDestroy {
           .filter(Boolean)
           .join('\n')
       );
-      this.logger.log(`[Smart] Extracted ${text.split('\n').length} items in ${Date.now() - start}ms`);
+      log(`Extracted ${text.split('\n').length} items in ${Date.now() - start}ms`);
       if (!text) throw new Error(`No text found for selector: "${selectors[0]}"`);
       return this.format(text);
     }
 
-    // multi-field: extract each selector, zip rows by index
-    this.logger.log(`[Smart] Multi-field extraction — ${selectors.length} selectors`);
+    log(`Multi-field extraction — ${selectors.length} selectors`);
     const start = Date.now();
     const columns = await Promise.all(
       selectors.map((sel) =>
         page.$$eval(sel, (els) =>
           els
             .filter((el) => {
-              // walk up the DOM — if any ancestor has display:none, element is hidden
               let cur: HTMLElement | null = el as HTMLElement;
               while (cur) {
                 if (getComputedStyle(cur).display === 'none') return false;
@@ -160,9 +157,7 @@ export class SmartScraperService implements IScraper, OnModuleDestroy {
         )
       )
     );
-    this.logger.log(
-      `[Smart] Column lengths: [${columns.map((c) => c.length).join(', ')}] in ${Date.now() - start}ms`
-    );
+    log(`Column lengths: [${columns.map((c) => c.length).join(', ')}] in ${Date.now() - start}ms`);
     return this.zipColumns(columns);
   }
 
@@ -182,9 +177,21 @@ export class SmartScraperService implements IScraper, OnModuleDestroy {
   private async getBrowser(): Promise<Browser> {
     if (!this.browser || !this.browser.connected) {
       this.logger.log('[Smart] Launching browser...');
-      this.browser = await puppeteer.launch({ headless: CONFIG.is_headless, args: [...CONFIG.args] }) as unknown as Browser;
+      this.browser = await puppeteer.launch({
+        headless: CONFIG.is_headless,
+        args: [...CONFIG.args],
+      }) as unknown as Browser;
     }
     return this.browser;
+  }
+
+  private async openPage(): Promise<Page> {
+    const browser = await this.getBrowser();
+    const page = await browser.newPage();
+    await page.setViewport(CONFIG.viewport);
+    await page.setDefaultTimeout(CONFIG.timeout);
+    await page.setExtraHTTPHeaders(CONFIG.headers);
+    return page;
   }
 
   async onModuleDestroy(): Promise<void> {
