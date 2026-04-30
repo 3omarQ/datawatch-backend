@@ -7,15 +7,16 @@ import {
 import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { Log } from 'src/generated/prisma/client';
 
 const USER_ROOM_PREFIX = 'user:';
 
-@WebSocketGateway( { cors: { origin: '*' } })
+@WebSocketGateway({ cors: { origin: '*' } })
 export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
-  private readonly server: Server;
+  private readonly server!: Server;
   private readonly logger = new Logger(NotificationsGateway.name);
-  constructor(private readonly jwtService: JwtService) {}
+  constructor(private readonly jwtService: JwtService) { }
 
   async handleConnection(client: Socket) {
     const userId = this.extractUserId(client);
@@ -33,6 +34,12 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
 
   pushToUser(userId: string, notification: object) {
     this.server.to(this.userRoom(userId)).emit('notification', notification);
+  }
+
+  pushLogToUser(userId: string, payload: { executionId: string; log: Log }) {
+    this.server
+      .to(this.userRoom(userId)) // was .to(userId) — missing the prefix
+      .emit('execution:log', payload);
   }
 
   private extractUserId(client: Socket): string | null {

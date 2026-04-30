@@ -1,9 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '../prisma/prisma.service';
-import { ExecutionStatus } from '../generated/prisma/enums';
+import { ExecutionStatus, LogLevel } from '../generated/prisma/enums';
 import { EXECUTION_DONE, EXECUTION_FAILED, EXECUTION_DIFF } from '../events/event-names';
 import { ExecutionDoneEvent, ExecutionFailedEvent, ExecutionDiffEvent } from 'src/events/executions.events';
+import { NotificationsGateway } from 'src/notifications/gateways/notifications.gateway';
 
 const EXECUTION_DONE_LOG = (length: number) =>
   `Scrape completed successfully. Extracted ${length} characters.`;
@@ -12,9 +13,12 @@ const MIN_EXECUTIONS_FOR_DIFF = 2;
 
 @Injectable()
 export class JobExecutionsService {
+  private readonly logger = new Logger(JobExecutionsService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly notificationsGateway: NotificationsGateway,
   ) { }
 
   async findOne(jobId: string, executionId: string, userId: string) {
@@ -33,8 +37,11 @@ export class JobExecutionsService {
   }
 
   async initExecution(jobId: string, executionId?: string) {
-    if (executionId) return this.markRunning(executionId);
-
+    if (executionId) {
+      this.logger.log(`[${jobId}] Re-using execution ${executionId} — marking RUNNING`);
+      return this.markRunning(executionId);
+    }
+    this.logger.log(`[${jobId}] Creating new execution`);
     return this.prisma.jobExecution.create({
       data: { jobId, status: ExecutionStatus.RUNNING, startedAt: new Date() },
     });
@@ -65,6 +72,7 @@ export class JobExecutionsService {
     await this.saveResult(executionId, result);
     await this.saveLog(executionId, 'INFO', EXECUTION_DONE_LOG(result.length));
     await this.markDone(executionId);
+    this.logger.log(`[${jobId}] Execution ${executionId} marked DONE`);
 
     const userId = await this.fetchUserId(jobId);
     await this.detectAndEmitDiff(jobId, executionId, userId);
@@ -74,6 +82,7 @@ export class JobExecutionsService {
   async failExecution(executionId: string, jobId: string, errorMessage: string) {
     await this.saveLog(executionId, 'ERROR', errorMessage);
     await this.markFailed(executionId);
+    this.logger.error(`[${jobId}] Execution ${executionId} marked FAILED — ${errorMessage}`);
 
     const userId = await this.fetchUserId(jobId);
     this.eventEmitter.emit(EXECUTION_FAILED, new ExecutionFailedEvent(jobId, executionId, userId, errorMessage));
@@ -92,6 +101,18 @@ export class JobExecutionsService {
         _count: { select: { logs: true, results: true } }
       },
     });
+  }
+  private async fetchUserIdByExecutionId(executionId: string): Promise<string> {
+    const execution = await this.prisma.jobExecution.findUnique({
+      where: { id: executionId },
+      include: {
+        job: {
+          include: { datapoint: { include: { targetUrl: true } } },
+        },
+      },
+    });
+    if (!execution) throw new NotFoundException(`Execution ${executionId} not found.`);
+    return execution.job.datapoint.targetUrl.userId;
   }
 
   async findLatestDone(jobId: string, userId: string) {
@@ -184,9 +205,16 @@ export class JobExecutionsService {
     });
   }
 
-  private async saveLog(executionId: string, level: 'INFO' | 'ERROR', message: string) {
-    return this.prisma.log.create({
+  private async saveLog(executionId: string, level: LogLevel, message: string) {
+    const log = await this.prisma.log.create({
       data: { executionId, level, message },
     });
+    // emit to the user owning this execution
+    const userId = await this.fetchUserIdByExecutionId(executionId);
+    this.notificationsGateway.pushLogToUser(userId, {
+      executionId,
+      log,
+    });
+    return log;
   }
 }

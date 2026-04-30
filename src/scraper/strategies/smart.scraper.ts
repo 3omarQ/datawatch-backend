@@ -51,7 +51,7 @@ export class SmartScraperService implements IScraper, OnModuleDestroy {
     const allRows: string[] = [];
 
     for (let i = 0; i < maxPages; i++) {
-      this.logger.log(`[Smart] Extracting page ${i + 1}`);
+      this.logger.log(`[Smart] Extracting page ${i + 1}/${maxPages}`);
       const raw = await this.extract(page, path);
       if (raw) allRows.push(raw);
 
@@ -89,13 +89,14 @@ export class SmartScraperService implements IScraper, OnModuleDestroy {
       }
 
       if (!nextHref) {
-        this.logger.log(`[Smart] No enabled next button found — stopping`);
+        this.logger.log(`[Smart] No next button found — stopping at page ${i + 1}`);
         break;
       }
 
       // Navigate by URL instead of clicking so the selector position doesn't matter
       await this.navigate(page, nextHref);
     }
+    this.logger.log(`[Smart] Pagination complete — ${allRows.length} pages scraped`);
 
     return this.format(allRows.join('\n'));
   }
@@ -110,23 +111,37 @@ export class SmartScraperService implements IScraper, OnModuleDestroy {
 
   private async navigate(page: Page, url: string): Promise<void> {
     this.logger.log(`[Smart] Navigating to: ${url}`);
+    const start = Date.now();
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: CONFIG.navigationTimeout });
     await new Promise((r) => setTimeout(r, CONFIG.renderDelay));
+    this.logger.log(`[Smart] Page ready in ${Date.now() - start}ms`);
   }
 
   private async extract(page: Page, path: string): Promise<string> {
     const selectors = path.split(',').map((s) => s.trim()).filter(Boolean);
 
     if (selectors.length === 1) {
-      await page.waitForSelector(selectors[0], { timeout: CONFIG.timeout });
+      this.logger.log(`[Smart] Waiting for selector: ${selectors[0]}`);
+
+      await page.waitForSelector(selectors[0], { timeout: CONFIG.timeout }).catch((e) => {
+        this.logger.warn(`[Smart] waitForSelector timed out for: ${selectors[0]} — ${e.message}`);
+      });
+      const start = Date.now();
       const text = await page.$$eval(selectors[0], (els) =>
-        els.map((el) => (el as HTMLElement).innerText.trim()).filter(Boolean).join('\n')
+        els
+          .filter((el) => getComputedStyle(el as HTMLElement).display !== 'none')
+          .map((el) => (el as HTMLElement).innerText.trim())
+          .filter(Boolean)
+          .join('\n')
       );
+      this.logger.log(`[Smart] Extracted ${text.split('\n').length} items in ${Date.now() - start}ms`);
       if (!text) throw new Error(`No text found for selector: "${selectors[0]}"`);
       return this.format(text);
     }
 
     // multi-field: extract each selector, zip rows by index
+    this.logger.log(`[Smart] Multi-field extraction — ${selectors.length} selectors`);
+    const start = Date.now();
     const columns = await Promise.all(
       selectors.map((sel) =>
         page.$$eval(sel, (els) =>
@@ -145,7 +160,9 @@ export class SmartScraperService implements IScraper, OnModuleDestroy {
         )
       )
     );
-
+    this.logger.log(
+      `[Smart] Column lengths: [${columns.map((c) => c.length).join(', ')}] in ${Date.now() - start}ms`
+    );
     return this.zipColumns(columns);
   }
 

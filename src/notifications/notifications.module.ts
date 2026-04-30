@@ -16,6 +16,6 @@ import { AuthModule } from 'src/auth/auth.module';
   ],
   controllers: [NotificationsController],
   providers: [NotificationsService, NotificationsGateway, WebhookChannel],
-  exports: [NotificationsService],
+  exports: [NotificationsService, NotificationsGateway],
 })
-export class NotificationsModule {}
+export class NotificationsModule { }

@@ -3,11 +3,12 @@ import { JobExecutionsService } from './job-executions.service';
 import { JobExecutionsController } from './job-executions.controller';
 import { PrismaModule } from '../prisma/prisma.module';
 import { JobSchedulerModule } from '../jobs/job-scheduler.module';
+import { NotificationsModule } from 'src/notifications/notifications.module';
 
 @Module({
-  imports: [PrismaModule, JobSchedulerModule],
+  imports: [PrismaModule, JobSchedulerModule, NotificationsModule],
   controllers: [JobExecutionsController],
   providers: [JobExecutionsService],
   exports: [JobExecutionsService],
 })
-export class JobExecutionsModule {}
+export class JobExecutionsModule { }

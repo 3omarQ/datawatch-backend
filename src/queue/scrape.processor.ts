@@ -25,26 +25,37 @@ export class ScrapeProcessor extends WorkerHost {
 
   async process(job: Job<ScrapeJobData>): Promise<void> {
     const { jobId, executionId } = job.data;
-    this.logger.log(`Processing scrape for job ${jobId}`);
+    const start = Date.now();
+    this.logger.log(`[${jobId}] Starting scrape`);
 
     const execution = await this.jobExecutionsService.initExecution(jobId, executionId);
 
     try {
-      const { url, path, extractorType, outputFormat, fieldNames, paginationSelector, maxPages } =
-        await this.jobExecutionsService.fetchJobTarget(jobId);
+      const target = await this.jobExecutionsService.fetchJobTarget(jobId);
+      this.logger.log(
+        `[${jobId}] Target: ${target.url} | selector: ${target.path} | ` +
+        `extractor: ${target.extractorType} | format: ${target.outputFormat} | ` +
+        `pagination: ${target.paginationSelector ?? 'none'} | maxPages: ${target.maxPages ?? 1}`
+      );
 
-      const scraper = this.scraperFactory.get(extractorType);
-      console.log('fieldNames in processor:', fieldNames);
-      const formatter = this.formatterFactory.get(outputFormat, fieldNames);
-      console.log('formatter has fieldNames bound:', formatter.format.toString().includes('fieldNames'));
+      const scraper = this.scraperFactory.get(target.extractorType);
+      const formatter = this.formatterFactory.get(target.outputFormat, target.fieldNames);
 
-      const raw = await scraper.scrape(url, path, paginationSelector, maxPages);
+      const scrapeStart = Date.now();
+      const raw = await scraper.scrape(target.url, target.path, target.paginationSelector, target.maxPages);
+      const scrapeMs = Date.now() - scrapeStart;
+      this.logger.log(`[${jobId}] Scrape done in ${scrapeMs}ms — raw length: ${raw.length} chars`);
+
       const result = formatter.format(raw);
-      console.log('formatted result first 100 chars:', result.slice(0, 100));
+      this.logger.log(`[${jobId}] Formatted — output length: ${result.length} chars`);
 
       await this.jobExecutionsService.completeExecution(execution.id, jobId, result);
+      this.logger.log(`[${jobId}] Execution ${execution.id} completed in ${Date.now() - start}ms`);
+
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error.';
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      const stack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`[${jobId}] Execution ${execution.id} failed after ${Date.now() - start}ms — ${message}`, stack);
       await this.jobExecutionsService.failExecution(execution.id, jobId, message);
       throw error;
     }

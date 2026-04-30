@@ -6,15 +6,17 @@ import { ScraperModule } from '../scraper/scraper.module';
 import { PrismaModule } from '../prisma/prisma.module';
 import { SCRAPE_QUEUE_NAME } from './constants';
 import { JobExecutionsService } from '../job-executions/job-executions.service';
+import { NotificationsModule } from 'src/notifications/notifications.module';
 
 @Module({
   imports: [
     BullModule.registerQueue({ name: SCRAPE_QUEUE_NAME }),
     ScraperModule,
     PrismaModule,
+    NotificationsModule,
 
   ],
   providers: [ScrapeProcessor, ScrapeQueueEvents, JobExecutionsService],
   exports: [BullModule],
 })
-export class QueueModule {}
+export class QueueModule { }
