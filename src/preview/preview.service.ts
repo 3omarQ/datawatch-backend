@@ -25,7 +25,7 @@ export class PreviewService {
   async getProxiedHtml(url: string, selector: string): Promise<string> {
     const browser = await puppeteer.launch({
       headless: true,
-      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || puppeteer.executablePath(),
       args: LAUNCH_ARGS,
     }) as unknown as Browser;
 
