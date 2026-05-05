@@ -33,7 +33,7 @@ export class PreviewService {
       const page = await browser.newPage();
       await page.setViewport(VIEWPORT);
       await page.setExtraHTTPHeaders({ 'Accept-Language': 'en-US,en;q=0.9' });
-      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 25000 });
+      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
 
       if (selector) {
         await page.waitForSelector(selector, { timeout: 10000 }).catch(() => { });

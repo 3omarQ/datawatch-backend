@@ -7,9 +7,9 @@ import { IScraper, ScraperLogFn } from '../interfaces/scraper.interface';
 puppeteer.use(StealthPlugin());
 
 const CONFIG = {
-  timeout: 30000,
-  navigationTimeout: 25000,
-  renderDelay: 3000,
+  timeout: 300000,
+  navigationTimeout: 300000,
+  renderDelay: 5000,
   viewport: { width: 1280, height: 800 },
   args: [
     '--no-sandbox',
