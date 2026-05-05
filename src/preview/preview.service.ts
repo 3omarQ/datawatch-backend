@@ -12,7 +12,11 @@ const LAUNCH_ARGS = [
   '--disable-setuid-sandbox',
   '--disable-dev-shm-usage',
   '--disable-gpu',
+  '--no-first-run',
+  '--no-zygote',
+  '--single-process', // important on Render's free tier
 ];
+
 
 const VIEWPORT = { width: 1280, height: 800 };
 
