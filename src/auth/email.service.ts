@@ -6,17 +6,22 @@ import { BrevoClient } from '@getbrevo/brevo';
 export class EmailService {
   private brevo: BrevoClient;
   private from: string;
+  private name: string;
 
   constructor(private readonly configService: ConfigService) {
     this.brevo = new BrevoClient({
       apiKey: this.configService.get('BREVO_API_KEY') || "",
     });
-    this.from = this.configService.get('SMTP_FROM') || "Omar";
+    this.from = this.configService.get('SMTP_FROM') || "";
+    this.name = this.configService.get('SMTP_USER') || "Omar";
   }
 
   private async send(to: string, subject: string, htmlContent: string) {
     await this.brevo.transactionalEmails.sendTransacEmail({
-      sender: { email: this.from },
+      sender: {
+        email: this.from,
+        name: this.name
+      },
       to: [{ email: to }],
       subject,
       htmlContent,
