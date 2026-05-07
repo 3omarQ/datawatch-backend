@@ -9,7 +9,7 @@ puppeteer.use(StealthPlugin());
 const CONFIG = {
   timeout: 300000,
   navigationTimeout: 300000,
-  renderDelay: 5000,
+  renderDelay: 3000,
   viewport: { width: 1280, height: 800 },
   args: [
     '--no-sandbox',
@@ -17,8 +17,8 @@ const CONFIG = {
     '--disable-dev-shm-usage',
     '--disable-gpu',
     // Memory savers
-    '--single-process',           // Run in a single process (biggest win)
-    '--no-zygote',                // Disable zygote process
+    '--single-process',
+    '--no-zygote',
     '--disable-extensions',
     '--disable-background-networking',
     '--disable-default-apps',
