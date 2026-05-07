@@ -16,6 +16,23 @@ const CONFIG = {
     '--disable-setuid-sandbox',
     '--disable-dev-shm-usage',
     '--disable-gpu',
+    // Memory savers
+    '--single-process',           // Run in a single process (biggest win)
+    '--no-zygote',                // Disable zygote process
+    '--disable-extensions',
+    '--disable-background-networking',
+    '--disable-default-apps',
+    '--disable-sync',
+    '--disable-translate',
+    '--hide-scrollbars',
+    '--metrics-recording-only',
+    '--mute-audio',
+    '--no-first-run',
+    '--safebrowsing-disable-auto-update',
+    '--disable-background-timer-throttling',
+    '--disable-backgrounding-occluded-windows',
+    '--disable-renderer-backgrounding',
+    '--disable-features=TranslateUI,BlinkGenPropertyTrees',
   ],
   headers: {
     'Accept-Language': 'en-US,en;q=0.9',
