@@ -60,7 +60,7 @@ export class JobExecutionsService {
     return {
       url: job.datapoint.targetUrl.url,
       path: job.datapoint.path,
-      fieldNames: job.datapoint.fieldNames ? JSON.parse(job.datapoint.fieldNames) : undefined,
+      fieldNames: fieldNames,
       paginationSelector: job.datapoint.paginationSelector ?? undefined,
       maxPages: job.datapoint.maxPages ?? undefined,
       extractorType: job.extractorType,
