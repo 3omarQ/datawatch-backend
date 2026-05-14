@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { IFormatter } from './formatter.interface';
+import { parseRows } from '../utils/parse-rows';
 
 @Injectable()
 export class CsvFormatter implements IFormatter {
 	format(raw: string, fieldNames?: string[]): string {
-		const rows = this.parseRows(raw);
+		const rows = parseRows(raw);
 		if (rows.length === 0) return '';
 
 		const colCount = Math.max(...rows.map((r) => r.length));
@@ -16,14 +17,6 @@ export class CsvFormatter implements IFormatter {
 				Array.from({ length: colCount }, (_, i) => this.escape(r[i] ?? '')).join(',')
 			),
 		].join('\n');
-	}
-
-	private parseRows(raw: string): string[][] {
-		return raw
-			.split('\n')
-			.map((l) => l.trim())
-			.filter(Boolean)
-			.map((line) => line.split('|').map((c) => c.trim()));
 	}
 
 	private buildHeaders(fieldNames: string[] | undefined, colCount: number): string[] {

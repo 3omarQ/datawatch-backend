@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { IFormatter } from './formatter.interface';
+import { parseRows } from '../utils/parse-rows';
 
 @Injectable()
 export class MdFormatter implements IFormatter {
   format(raw: string, fieldNames?: string[]): string {
-    const rows = this.parseRows(raw);
+    const rows = parseRows(raw);
     if (rows.length === 0) return '';
 
     const isMultiField = rows[0].length > 1;
@@ -35,13 +36,5 @@ export class MdFormatter implements IFormatter {
     );
 
     return [headerRow, separator, ...dataRows].join('\n');
-  }
-
-  private parseRows(raw: string): string[][] {
-    return raw
-      .split('\n')
-      .map((l) => l.trim())
-      .filter(Boolean)
-      .map((line) => line.split('|').map((c) => c.trim()));
   }
 }
