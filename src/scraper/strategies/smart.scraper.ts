@@ -3,6 +3,7 @@ import { Browser, Page } from 'puppeteer';
 import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import { IScraper, ScraperLogFn } from '../interfaces/scraper.interface';
+import { normalizeScrapedText, zipColumns } from '../utils/scraper-text';
 
 puppeteer.use(StealthPlugin());
 
@@ -123,7 +124,7 @@ export class SmartScraperService implements IScraper, OnModuleDestroy {
     }
 
     log(`Pagination complete — ${allRows.length} pages scraped`);
-    return this.format(allRows.join('\n'));
+    return normalizeScrapedText(allRows.join('\n'));
   }
 
   private async navigate(page: Page, url: string, log: (msg: string) => void): Promise<void> {
@@ -152,7 +153,7 @@ export class SmartScraperService implements IScraper, OnModuleDestroy {
       );
       log(`Extracted ${text.split('\n').length} items in ${Date.now() - start}ms`);
       if (!text) throw new Error(`No text found for selector: "${selectors[0]}"`);
-      return this.format(text);
+      return normalizeScrapedText(text);
     }
 
     log(`Multi-field extraction — ${selectors.length} selectors`);
@@ -175,20 +176,7 @@ export class SmartScraperService implements IScraper, OnModuleDestroy {
       )
     );
     log(`Column lengths: [${columns.map((c) => c.length).join(', ')}] in ${Date.now() - start}ms`);
-    return this.zipColumns(columns);
-  }
-
-  private zipColumns(columns: string[][]): string {
-    const rowCount = Math.max(...columns.map((c) => c.length));
-    const rows: string[] = [];
-    for (let i = 0; i < rowCount; i++) {
-      rows.push(columns.map((col) => col[i] ?? '').join(' | '));
-    }
-    return rows.join('\n');
-  }
-
-  private format(raw: string): string {
-    return raw.split('\n').map((l) => l.trim()).filter((l) => l.length > 0).join('\n');
+    return zipColumns(columns);
   }
 
   private async getBrowser(): Promise<Browser> {

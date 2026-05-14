@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import * as cheerio from 'cheerio';
 import axios from 'axios';
 import { IScraper } from '../interfaces/scraper.interface';
+import { normalizeScrapedText, zipColumns } from '../utils/scraper-text';
 
 type CheerioRoot = ReturnType<typeof cheerio.load>;
 type CheerioElements = ReturnType<CheerioRoot>;
@@ -13,7 +14,7 @@ export class BasicScraperService implements IScraper {
   async scrape(url: string, path: string, paginationSelector?: string, maxPages?: number): Promise<string> {
     if (!paginationSelector || !maxPages) {
       const html = await this.fetchHtml(url);
-      return this.format(this.extract(html, path));
+      return normalizeScrapedText(this.extract(html, path));
     }
     return this.scrapeWithPagination(url, path, paginationSelector, maxPages);
   }
@@ -46,7 +47,7 @@ export class BasicScraperService implements IScraper {
       page++;
     }
 
-    return this.format(allRows.join('\n'));
+    return normalizeScrapedText(allRows.join('\n'));
   }
 
   private async fetchHtml(url: string): Promise<string> {
@@ -82,16 +83,7 @@ export class BasicScraperService implements IScraper {
       return texts;
     });
 
-    return this.zipColumns(columns);
-  }
-
-  private zipColumns(columns: string[][]): string {
-    const rowCount = Math.max(...columns.map((c) => c.length));
-    const rows: string[] = [];
-    for (let i = 0; i < rowCount; i++) {
-      rows.push(columns.map((col) => col[i] ?? '').join(' | '));
-    }
-    return rows.join('\n');
+    return zipColumns(columns);
   }
 
   private extractTexts($: CheerioRoot, elements: CheerioElements): string[] {
@@ -103,11 +95,4 @@ export class BasicScraperService implements IScraper {
     return texts;
   }
 
-  private format(raw: string): string {
-    return raw
-      .split('\n')
-      .map((l) => l.trim())
-      .filter((l) => l.length > 0)
-      .join('\n');
-  }
 }
