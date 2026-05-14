@@ -14,9 +14,9 @@ type SchedulableJob = {
 
 @Injectable()
 export class JobSchedulerService {
-  private readonly logger = new Logger(JobSchedulerService.name);
 
   constructor(
+    private readonly logger = new Logger(JobSchedulerService.name),
     private readonly jobAccess: JobAccessService,
     @InjectQueue(SCRAPE_QUEUE_NAME) private readonly scrapeQueue: Queue,
   ) { }
@@ -110,7 +110,7 @@ export class JobSchedulerService {
     await this.scrapeQueue.removeJobScheduler(this.schedulerKey(jobId));
   }
 
-  private async removeOnceJob(jobId: string) {
+  private async removeOneTimeQueueJob(jobId: string) {
     const queuedJob = await this.scrapeQueue.getJob(this.onceJobKey(jobId));
     if (!queuedJob) return;
     try {
@@ -124,7 +124,7 @@ export class JobSchedulerService {
 
   private async clearSchedule(jobId: string) {
     await this.removeCronScheduler(jobId);
-    await this.removeOnceJob(jobId);
+    await this.removeOneTimeQueueJob(jobId);
   }
 
   async enqueueRun(jobId: string, userId: string) {
