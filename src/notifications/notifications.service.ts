@@ -10,58 +10,54 @@ import { ExecutionDiffEvent, ExecutionDoneEvent, ExecutionFailedEvent } from 'sr
 import { NotificationsGateway } from './gateways/notifications.gateway';
 import { EmailService } from 'src/auth/email.service';
 
+type NotificationJob = NonNullable<
+  Awaited<ReturnType<NotificationsService['fetchJob']>>
+>;
+
+type ExecutionNotificationConfig<TEvent> = {
+  enabled: (job: NotificationJob) => boolean;
+  type: NotificationType;
+  title: (job: NotificationJob) => string;
+  body: (event: TEvent) => string;
+};
+
 @Injectable()
 export class NotificationsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly gateway: NotificationsGateway,
     private readonly webhookChannel: WebhookChannel,
-        private readonly emailService: EmailService,
-  ) {}
+    private readonly emailService: EmailService,
+  ) { }
 
   @OnEvent(EXECUTION_DONE)
   async onExecutionDone(event: ExecutionDoneEvent) {
-    const job = await this.fetchJob(event.jobId);
-    if (!job?.notifyOnFinish) return;
-
-    await this.notify(new NotificationEvent(
-      event.userId,
-      event.jobId,
-      event.executionId,
-      NotificationType.EXECUTION_DONE,
-      `Job "${job.datapoint.name}" completed`,
-      `Execution finished successfully.`,
-    ));
+    await this.notifyFromExecutionEvent(event, {
+      enabled: (job) => job.notifyOnFinish,
+      type: NotificationType.EXECUTION_DONE,
+      title: (job) => `Job "${job.datapoint.name}" completed`,
+      body: () => 'Execution finished successfully.',
+    });
   }
 
   @OnEvent(EXECUTION_FAILED)
   async onExecutionFailed(event: ExecutionFailedEvent) {
-    const job = await this.fetchJob(event.jobId);
-    if (!job?.notifyOnFail) return;
-
-    await this.notify(new NotificationEvent(
-      event.userId,
-      event.jobId,
-      event.executionId,
-      NotificationType.EXECUTION_FAILED,
-      `Job "${job.datapoint.name}" failed`,
-      event.reason,
-    ));
+    await this.notifyFromExecutionEvent(event, {
+      enabled: (job) => job.notifyOnFail,
+      type: NotificationType.EXECUTION_FAILED,
+      title: (job) => `Job "${job.datapoint.name}" failed`,
+      body: (failedEvent) => failedEvent.reason,
+    });
   }
 
   @OnEvent(EXECUTION_DIFF)
   async onExecutionDiff(event: ExecutionDiffEvent) {
-    const job = await this.fetchJob(event.jobId);
-    if (!job?.notifyOnDiff) return;
-
-    await this.notify(new NotificationEvent(
-      event.userId,
-      event.jobId,
-      event.executionId,
-      NotificationType.EXECUTION_DIFF,
-      `Change detected in "${job.datapoint.name}"`,
-      `The scraped content has changed since the last run.`,
-    ));
+    await this.notifyFromExecutionEvent(event, {
+      enabled: (job) => job.notifyOnDiff,
+      type: NotificationType.EXECUTION_DIFF,
+      title: (job) => `Change detected in "${job.datapoint.name}"`,
+      body: () => 'The scraped content has changed since the last run.',
+    });
   }
 
   async getByUser(userId: string) {
@@ -88,7 +84,24 @@ export class NotificationsService {
 
   // ─── Private helpers ──────────────────────────────────────────────────────
 
-  private async notify(event: NotificationEvent) {
+  private async notifyFromExecutionEvent<TEvent extends ExecutionDoneEvent | ExecutionFailedEvent | ExecutionDiffEvent>(
+    event: TEvent,
+    config: ExecutionNotificationConfig<TEvent>,
+  ) {
+    const job = await this.fetchJob(event.jobId);
+    if (!job || !config.enabled(job)) return;
+
+    await this.dispatchNotification(new NotificationEvent(
+      event.userId,
+      event.jobId,
+      event.executionId,
+      config.type,
+      config.title(job),
+      config.body(event),
+    ));
+  }
+
+  private async dispatchNotification(event: NotificationEvent) {
     const notification = await this.saveNotification(event);
     await this.trimOldNotifications(event.userId);
     this.gateway.pushToUser(event.userId, notification);
@@ -108,7 +121,7 @@ export class NotificationsService {
       },
     });
   }
-  
+
   private async maybeEmailUser(event: NotificationEvent) {
     const user = await this.prisma.user.findUnique({
       where: { id: event.userId },

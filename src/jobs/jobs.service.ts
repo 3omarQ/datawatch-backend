@@ -13,7 +13,7 @@ export class JobsService {
     private readonly datapointsService: DatapointsService,
     private readonly jobSchedulerService: JobSchedulerService,
     private readonly jobAccess: JobAccessService,
-  ) {}
+  ) { }
 
   async findAllByUser(userId: string) {
     return this.prisma.job.findMany({
@@ -75,7 +75,7 @@ export class JobsService {
       include: { datapoint: { include: { targetUrl: true } } },
     });
 
-    await this.jobSchedulerService.syncAfterUpdate(job, updated);
+    await this.jobSchedulerService.rescheduleAfterJobUpdate(job, updated);
 
     return updated;
   }

@@ -23,10 +23,10 @@ export class JobSchedulerService {
 
   async scheduleOnCreate(job: SchedulableJob) {
     if (job.status === JobStatus.PAUSED) return;
-    await this.scheduleActiveJob(job, { tryToRunImmediately: true });
+    await this.updateJobSchedule(job, { tryToRunImmediately: true });
   }
 
-  async syncAfterUpdate(previous: SchedulableJob, current: SchedulableJob) {
+  async rescheduleAfterJobUpdate(previous: SchedulableJob, current: SchedulableJob) {
     if (current.status === JobStatus.PAUSED) {
       await this.clearSchedule(current.id);
       return;
@@ -37,11 +37,11 @@ export class JobSchedulerService {
       previous.cron !== current.cron ||
       previous.scheduleStart?.getTime() !== current.scheduleStart?.getTime()
     ) {
-      await this.scheduleActiveJob(current, { tryToRunImmediately: false });
+      await this.updateJobSchedule(current, { tryToRunImmediately: false });
     }
   }
 
-  private async scheduleActiveJob(
+  private async updateJobSchedule(
     job: SchedulableJob,
     options: { tryToRunImmediately: boolean },
   ) {
