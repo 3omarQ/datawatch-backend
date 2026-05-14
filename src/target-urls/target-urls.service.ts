@@ -6,7 +6,6 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTargetUrlDto } from './dto/create-target-url.dto';
 import { UpdateTargetUrlDto } from './dto/update-target-url.dto';
-import { UrlStatus } from 'src/generated/prisma/enums';
 import { UrlInspectorService } from './url-inspector.service';
 
 @Injectable()
@@ -14,15 +13,15 @@ export class TargetUrlsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly urlInspectorService: UrlInspectorService,
-  ) {}
+  ) { }
 
   private extractBaseUrl(url: string): string {
-  try {
-    return new URL(url).hostname;
-  } catch {
-    return url;
+    try {
+      return new URL(url).hostname;
+    } catch {
+      return url;
+    }
   }
-}
 
   async findAllByUser(userId: string) {
     return this.prisma.targetUrl.findMany({
@@ -53,7 +52,7 @@ export class TargetUrlsService {
   async create(userId: string, dto: CreateTargetUrlDto) {
     const { name, status } = await this.urlInspectorService.inspect(dto.url);
     return this.prisma.targetUrl.create({
-      data: { url: dto.url,baseUrl: this.extractBaseUrl(dto.url), name, status, userId },
+      data: { url: dto.url, baseUrl: this.extractBaseUrl(dto.url), name, status, userId },
     });
   }
 
@@ -66,7 +65,7 @@ export class TargetUrlsService {
 
     const { name, status } = await this.urlInspectorService.inspect(dto.url);
     return this.prisma.targetUrl.create({
-      data: { url: dto.url, name,baseUrl: this.extractBaseUrl(dto.url), status, userId },
+      data: { url: dto.url, name, baseUrl: this.extractBaseUrl(dto.url), status, userId },
     });
   }
 
@@ -75,9 +74,9 @@ export class TargetUrlsService {
     return this.prisma.targetUrl.update({
       where: { id },
       data: {
-      ...dto,
-      ...(dto.url ? { baseUrl: this.extractBaseUrl(dto.url) } : {}),
-    },
+        ...dto,
+        ...(dto.url ? { baseUrl: this.extractBaseUrl(dto.url) } : {}),
+      },
 
     });
   }

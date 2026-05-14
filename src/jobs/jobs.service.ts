@@ -75,11 +75,7 @@ export class JobsService {
       include: { datapoint: { include: { targetUrl: true } } },
     });
 
-    if (dto.status === 'PAUSED') {
-      await this.jobSchedulerService.onJobPaused(id);
-    } else if (dto.status === 'ACTIVE') {
-      await this.jobSchedulerService.onJobResumed(id, job.cron);
-    }
+    await this.jobSchedulerService.syncAfterUpdate(job, updated);
 
     return updated;
   }

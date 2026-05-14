@@ -3,6 +3,14 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { SCRAPE_QUEUE_NAME, SCRAPE_JOB_NAME, SCHEDULER_PREFIX } from '../queue/constants';
 import { JobAccessService } from '../access/job-access.service';
+import { JobStatus } from '../generated/prisma/enums';
+
+type SchedulableJob = {
+  id: string;
+  status: JobStatus;
+  cron: string | null;
+  scheduleStart: Date | null;
+};
 
 @Injectable()
 export class JobSchedulerService {
@@ -13,14 +21,35 @@ export class JobSchedulerService {
     @InjectQueue(SCRAPE_QUEUE_NAME) private readonly scrapeQueue: Queue,
   ) { }
 
-  async scheduleOnCreate(job: {
-    id: string;
-    cron: string | null;
-    scheduleStart: Date | null;
-  }) {
+  async scheduleOnCreate(job: SchedulableJob) {
+    if (job.status === JobStatus.PAUSED) return;
+    await this.scheduleActiveJob(job, { tryToRunImmediately: true });
+  }
+
+  async syncAfterUpdate(previous: SchedulableJob, current: SchedulableJob) {
+    if (current.status === JobStatus.PAUSED) {
+      await this.clearSchedule(current.id);
+      return;
+    }
+
+    if (
+      previous.status === JobStatus.PAUSED ||
+      previous.cron !== current.cron ||
+      previous.scheduleStart?.getTime() !== current.scheduleStart?.getTime()
+    ) {
+      await this.scheduleActiveJob(current, { tryToRunImmediately: false });
+    }
+  }
+
+  private async scheduleActiveJob(
+    job: SchedulableJob,
+    options: { tryToRunImmediately: boolean },
+  ) {
+    await this.clearSchedule(job.id);
+
     if (job.cron) {
       await this.registerCronScheduler(job.id, job.cron);
-      const shouldRunImmediately = !job.scheduleStart;
+      const shouldRunImmediately = options.tryToRunImmediately && !job.scheduleStart;
       if (shouldRunImmediately) await this.enqueueImmediate(job.id);
       return;
     }
@@ -36,20 +65,9 @@ export class JobSchedulerService {
     await this.enqueueOnce(job.id, delay);
   }
 
-  async onJobPaused(jobId: string) {
-    this.logger.log(`[Scheduler] Job ${jobId} paused — removing cron scheduler`);
-    await this.removeCronScheduler(jobId);
-  }
-
-  async onJobResumed(jobId: string, cron: string | null) {
-    this.logger.log(`[Scheduler] Job ${jobId} resumed — cron: ${cron ?? 'none'}`);
-    if (!cron) return;
-    await this.registerCronScheduler(jobId, cron);
-  }
-
   async onJobDeleted(jobId: string) {
     this.logger.log(`[Scheduler] Job ${jobId} deleted — removing cron scheduler`);
-    await this.removeCronScheduler(jobId);
+    await this.clearSchedule(jobId);
   }
 
   // ─── Private helpers ──────────────────────────────────────────────────────
@@ -57,6 +75,10 @@ export class JobSchedulerService {
 
   private schedulerKey(jobId: string): string {
     return `${SCHEDULER_PREFIX}-${jobId}`;
+  }
+
+  private onceJobKey(jobId: string): string {
+    return `once-${jobId}`;
   }
 
   private computeDelay(scheduleStart: Date | null): number {
@@ -72,7 +94,7 @@ export class JobSchedulerService {
     await this.scrapeQueue.add(
       SCRAPE_JOB_NAME,
       { jobId },
-      { delay },
+      { delay, jobId: this.onceJobKey(jobId) },
     );
   }
 
@@ -86,6 +108,23 @@ export class JobSchedulerService {
 
   private async removeCronScheduler(jobId: string) {
     await this.scrapeQueue.removeJobScheduler(this.schedulerKey(jobId));
+  }
+
+  private async removeOnceJob(jobId: string) {
+    const queuedJob = await this.scrapeQueue.getJob(this.onceJobKey(jobId));
+    if (!queuedJob) return;
+    try {
+      await queuedJob.remove();
+    } catch (error) {
+      this.logger.warn(
+        `[Scheduler] Could not remove one-time job ${jobId}: ${error instanceof Error ? error.message : 'unknown error'}`,
+      );
+    }
+  }
+
+  private async clearSchedule(jobId: string) {
+    await this.removeCronScheduler(jobId);
+    await this.removeOnceJob(jobId);
   }
 
   async enqueueRun(jobId: string, userId: string) {
