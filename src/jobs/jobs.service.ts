@@ -1,9 +1,10 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { DatapointsService } from '../datapoints/datapoints.service';
 import { JobSchedulerService } from './job-scheduler.service';
 import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
+import { JobAccessService } from '../access/job-access.service';
 
 @Injectable()
 export class JobsService {
@@ -11,6 +12,7 @@ export class JobsService {
     private readonly prisma: PrismaService,
     private readonly datapointsService: DatapointsService,
     private readonly jobSchedulerService: JobSchedulerService,
+    private readonly jobAccess: JobAccessService,
   ) {}
 
   async findAllByUser(userId: string) {
@@ -34,6 +36,7 @@ export class JobsService {
   }
 
   async findOneByUser(id: string, userId: string) {
+    await this.jobAccess.verifyJobOwnership(id, userId);
     const job = await this.prisma.job.findUnique({
       where: { id },
       include: {
@@ -42,7 +45,6 @@ export class JobsService {
       },
     });
     if (!job) throw new NotFoundException('Job not found');
-    if (job.datapoint.targetUrl.userId !== userId) throw new ForbiddenException(); //again verifies ownership
     return job;
   }
 

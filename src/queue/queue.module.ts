@@ -7,6 +7,7 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { SCRAPE_QUEUE_NAME } from './constants';
 import { JobExecutionsService } from '../job-executions/job-executions.service';
 import { NotificationsModule } from 'src/notifications/notifications.module';
+import { AccessModule } from '../access/access.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { NotificationsModule } from 'src/notifications/notifications.module';
     ScraperModule,
     PrismaModule,
     NotificationsModule,
+    AccessModule,
 
   ],
   providers: [ScrapeProcessor, ScrapeQueueEvents, JobExecutionsService],

@@ -5,6 +5,7 @@ import { ExecutionStatus, LogLevel } from '../generated/prisma/enums';
 import { EXECUTION_DONE, EXECUTION_FAILED, EXECUTION_DIFF } from '../events/event-names';
 import { ExecutionDoneEvent, ExecutionFailedEvent, ExecutionDiffEvent } from 'src/events/executions.events';
 import { NotificationsGateway } from 'src/notifications/gateways/notifications.gateway';
+import { JobAccessService } from '../access/job-access.service';
 
 const EXECUTION_DONE_LOG = (length: number) =>
   `Scrape completed successfully. Extracted ${length} characters.`;
@@ -19,10 +20,11 @@ export class JobExecutionsService {
     private readonly prisma: PrismaService,
     private readonly eventEmitter: EventEmitter2,
     private readonly notificationsGateway: NotificationsGateway,
+    private readonly jobAccess: JobAccessService,
   ) { }
 
   async findOne(jobId: string, executionId: string, userId: string) {
-    await this.verifyOwnership(jobId, userId);
+    await this.jobAccess.verifyJobExecutionOwnership(jobId, executionId, userId);
     const execution = await this.prisma.jobExecution.findUnique({
       where: { id: executionId },
       include: {
@@ -74,7 +76,7 @@ export class JobExecutionsService {
     await this.markDone(executionId);
     this.logger.log(`[${jobId}] Execution ${executionId} marked DONE`);
 
-    const userId = await this.fetchUserId(jobId);
+    const userId = await this.jobAccess.getJobOwnerId(jobId);
     await this.detectAndEmitDiff(jobId, executionId, userId);
     this.eventEmitter.emit(EXECUTION_DONE, new ExecutionDoneEvent(jobId, executionId, userId));
   }
@@ -84,12 +86,12 @@ export class JobExecutionsService {
     await this.markFailed(executionId);
     this.logger.error(`[${jobId}] Execution ${executionId} marked FAILED — ${errorMessage}`);
 
-    const userId = await this.fetchUserId(jobId);
+    const userId = await this.jobAccess.getJobOwnerId(jobId);
     this.eventEmitter.emit(EXECUTION_FAILED, new ExecutionFailedEvent(jobId, executionId, userId, errorMessage));
   }
 
   async findByJob(jobId: string, userId: string) {
-    await this.verifyOwnership(jobId, userId);
+    await this.jobAccess.verifyJobOwnership(jobId, userId);
     return this.prisma.jobExecution.findMany({
       where: { jobId },
       orderBy: { createdAt: 'desc' },
@@ -102,21 +104,8 @@ export class JobExecutionsService {
       },
     });
   }
-  private async fetchUserIdByExecutionId(executionId: string): Promise<string> {
-    const execution = await this.prisma.jobExecution.findUnique({
-      where: { id: executionId },
-      include: {
-        job: {
-          include: { datapoint: { include: { targetUrl: true } } },
-        },
-      },
-    });
-    if (!execution) throw new NotFoundException(`Execution ${executionId} not found.`);
-    return execution.job.datapoint.targetUrl.userId;
-  }
-
   async findLatestDone(jobId: string, userId: string) {
-    await this.verifyOwnership(jobId, userId);
+    await this.jobAccess.verifyJobOwnership(jobId, userId);
     return this.prisma.jobExecution.findMany({
       where: { jobId, status: ExecutionStatus.DONE },
       orderBy: { finishedAt: 'desc' },
@@ -159,25 +148,6 @@ export class JobExecutionsService {
 
   // ─── Private helpers ──────────────────────────────────────────────────────
 
-  private async fetchUserId(jobId: string): Promise<string> {
-    const job = await this.prisma.job.findUnique({
-      where: { id: jobId },
-      include: { datapoint: { include: { targetUrl: true } } },
-    });
-    if (!job) throw new NotFoundException(`Job ${jobId} not found.`);
-    return job.datapoint.targetUrl.userId;
-  }
-
-  private async verifyOwnership(jobId: string, userId: string) {
-    const job = await this.prisma.job.findUnique({
-      where: { id: jobId },
-      include: { datapoint: { include: { targetUrl: true } } },
-    });
-    if (!job) throw new NotFoundException('Job not found');
-    if (job.datapoint.targetUrl.userId !== userId) throw new NotFoundException('Job not found');
-    return job;
-  }
-
   private async markRunning(executionId: string) {
     return this.prisma.jobExecution.update({
       where: { id: executionId },
@@ -210,7 +180,7 @@ export class JobExecutionsService {
       data: { executionId, level, message },
     });
     // emit to the user owning this execution
-    const userId = await this.fetchUserIdByExecutionId(executionId);
+    const userId = await this.jobAccess.getExecutionOwnerId(executionId);
     this.notificationsGateway.pushLogToUser(userId, {
       executionId,
       log,

@@ -1,15 +1,15 @@
-import { ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { SCRAPE_QUEUE_NAME, SCRAPE_JOB_NAME, SCHEDULER_PREFIX } from '../queue/constants';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { JobAccessService } from '../access/job-access.service';
 
 @Injectable()
 export class JobSchedulerService {
   private readonly logger = new Logger(JobSchedulerService.name);
 
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly jobAccess: JobAccessService,
     @InjectQueue(SCRAPE_QUEUE_NAME) private readonly scrapeQueue: Queue,
   ) { }
 
@@ -90,12 +90,7 @@ export class JobSchedulerService {
 
   async enqueueRun(jobId: string, userId: string) {
     this.logger.log(`[Scheduler] Manual run requested for job ${jobId} by user ${userId}`);
-    const job = await this.prisma.job.findUnique({
-      where: { id: jobId },
-      include: { datapoint: { include: { targetUrl: true } } },
-    });
-    if (!job) throw new NotFoundException('Job not found');
-    if (job.datapoint.targetUrl.userId !== userId) throw new ForbiddenException();
+    await this.jobAccess.verifyJobOwnership(jobId, userId);
 
     await this.scrapeQueue.add(SCRAPE_JOB_NAME, { jobId });
     return { jobId };
