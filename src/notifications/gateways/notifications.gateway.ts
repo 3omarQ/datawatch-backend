@@ -8,10 +8,16 @@ import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Log } from 'src/generated/prisma/client';
+import { ACCESS_TOKEN_COOKIE, getCookieValue } from 'src/auth/auth-cookie';
 
 const USER_ROOM_PREFIX = 'user:';
 
-@WebSocketGateway({ cors: { origin: '*' } })
+@WebSocketGateway({
+  cors: {
+    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    credentials: true,
+  },
+})
 export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   private readonly server!: Server;
@@ -44,7 +50,10 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
 
   private extractUserId(client: Socket): string | null {
     try {
-      const token = client.handshake.auth?.token as string;
+      const token =
+        (client.handshake.auth?.token as string | undefined) ??
+        getCookieValue(client.handshake.headers.cookie, ACCESS_TOKEN_COOKIE);
+      if (!token) return null;
       const payload = this.jwtService.verify(token);
       return payload.sub ?? null;
     } catch {

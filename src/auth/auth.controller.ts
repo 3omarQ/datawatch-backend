@@ -3,13 +3,15 @@ import {
   Post,
   Body,
   UseGuards,
-  Request,
   HttpCode,
   HttpStatus,
   Get,
+  Res,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { AuthService } from './auth.service';
 import { toAuthUser } from './auth-user';
+import { clearAuthCookie, setAuthCookie } from './auth-cookie';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
@@ -33,14 +35,24 @@ export class AuthController {
   @Post('login')
   @UseGuards(LocalAuthGuard)
   @HttpCode(HttpStatus.OK)
-  login(@CurrentUser() user: User) {
-    return this.authService.login(user);
+  async login(
+    @CurrentUser() user: User,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const result = await this.authService.login(user);
+    setAuthCookie(res, result.accessToken);
+    return { user: result.user };
   }
 
   @Post('verify-email')
   @HttpCode(HttpStatus.OK)
-  verifyEmail(@Body() dto: VerifyEmailDto) {
-    return this.authService.verifyEmail(dto);
+  async verifyEmail(
+    @Body() dto: VerifyEmailDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const result = await this.authService.verifyEmail(dto);
+    setAuthCookie(res, result.accessToken);
+    return { user: result.user };
   }
 
   @Post('resend-verification')
@@ -63,8 +75,20 @@ export class AuthController {
 
   @Post('oauth')
   @HttpCode(HttpStatus.OK)
-  oauthLogin(@Body() dto: OAuthDto) {
-    return this.authService.oauthLogin(dto);
+  async oauthLogin(
+    @Body() dto: OAuthDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const result = await this.authService.oauthLogin(dto);
+    setAuthCookie(res, result.accessToken);
+    return { user: result.user };
+  }
+
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  logout(@Res({ passthrough: true }) res: Response) {
+    clearAuthCookie(res);
+    return { message: 'Logged out successfully.' };
   }
 
   @Get('me')
