@@ -14,9 +14,9 @@ type SchedulableJob = {
 
 @Injectable()
 export class JobSchedulerService {
+  private readonly logger = new Logger(JobSchedulerService.name);
 
   constructor(
-    private readonly logger = new Logger(JobSchedulerService.name),
     private readonly jobAccess: JobAccessService,
     @InjectQueue(SCRAPE_QUEUE_NAME) private readonly scrapeQueue: Queue,
   ) { }

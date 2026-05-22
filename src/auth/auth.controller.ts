@@ -9,6 +9,7 @@ import {
   Get,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { toAuthUser } from './auth-user';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
@@ -69,6 +70,6 @@ export class AuthController {
   @Get('me')
   @UseGuards(JwtAuthGuard)
   getMe(@CurrentUser() user: User) {
-    return user;
+    return toAuthUser(user);
   }
 }

@@ -6,7 +6,7 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from './email.service';
 import { RegisterDto } from './dto/register.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
@@ -14,7 +14,9 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { OAuthDto } from './dto/oauth.dto';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
-import { Provider, User } from '../generated/prisma/client';
+import type { User } from '../generated/prisma/client';
+import { Provider } from '../generated/prisma/enums';
+import { toAuthUser } from './auth-user';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 
@@ -65,13 +67,7 @@ export class AuthService {
     }
 
     return {
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        emailVerified: user.emailVerified,
-        role: user.role,
-      },
+      user: toAuthUser(user),
       accessToken: this.generateAccessToken(user),
     };
   }
@@ -155,13 +151,7 @@ export class AuthService {
     });
 
     return {
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        emailVerified: true,
-        role: user.role,
-      },
+      user: toAuthUser({ ...user, emailVerified: true }),
       accessToken: this.generateAccessToken({ ...user, emailVerified: true }),
     };
   }
@@ -268,13 +258,7 @@ export class AuthService {
     }
 
     return {
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        emailVerified: user.emailVerified,
-        role: user.role,
-      },
+      user: toAuthUser(user),
       accessToken: this.generateAccessToken(user),
     };
   }

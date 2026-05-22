@@ -5,28 +5,39 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { AUTH_USER_SELECT, toAuthUser } from '../auth/auth-user';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findById(id: string) {
+  private async findRawById(id: string) {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) throw new NotFoundException('User not found');
     return user;
   }
 
+  async findById(id: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      select: AUTH_USER_SELECT,
+    });
+    if (!user) throw new NotFoundException('User not found');
+    return toAuthUser(user);
+  }
+
   async updateProfile(id: string, name: string) {
-    return this.prisma.user.update({
+    const user = await this.prisma.user.update({
       where: { id },
       data: { name },
-      select: { id: true, name: true, email: true, image: true, notifyByEmail: true },
+      select: AUTH_USER_SELECT,
     });
+    return toAuthUser(user);
   }
 
   async changePassword(id: string, currentPassword: string, newPassword: string) {
-    const user = await this.findById(id);
+    const user = await this.findRawById(id);
     if (user.provider !== 'LOCAL')
       throw new ForbiddenException('OAuth users cannot change password');
     if (!user.password)
@@ -43,15 +54,17 @@ export class UsersService {
   }
 
   async updateNotificationSettings(id: string, notifyByEmail: boolean) {
-    return this.prisma.user.update({
+    const user = await this.prisma.user.update({
       where: { id },
       data: { notifyByEmail },
-      select: { id: true, notifyByEmail: true },
+      select: AUTH_USER_SELECT,
     });
+    return toAuthUser(user);
   }
 
   async deleteAccount(id: string) {
     await this.findById(id);
-    return this.prisma.user.delete({ where: { id } });
+    await this.prisma.user.delete({ where: { id } });
+    return { message: 'Account deleted successfully.' };
   }
 }
