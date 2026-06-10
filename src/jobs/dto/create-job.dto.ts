@@ -14,11 +14,11 @@ import { Transform } from 'class-transformer';
 export class CreateJobDto {
   @IsUUID()
   @IsNotEmpty()
-  datapointId: string;
+  datapointId!: string;
 
-  @IsString()
-  //@IsNotEmpty()
-  definition?: string;
+  // @IsString()
+  // //@IsNotEmpty()
+  // definition?: string;
 
   @IsString()
   @IsOptional()
