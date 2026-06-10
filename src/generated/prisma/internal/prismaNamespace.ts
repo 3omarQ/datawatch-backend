@@ -1265,7 +1265,6 @@ export type DatapointScalarFieldEnum = (typeof DatapointScalarFieldEnum)[keyof t
 export const JobScalarFieldEnum = {
   id: 'id',
   status: 'status',
-  definition: 'definition',
   scheduleStart: 'scheduleStart',
   cron: 'cron',
   datapointId: 'datapointId',

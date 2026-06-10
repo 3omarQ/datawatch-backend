@@ -148,7 +148,6 @@ model Datapoint {
 model Job {
   id            String    @id @default(uuid())
   status        JobStatus @default(ACTIVE)
-  definition    String    @default("")
   scheduleStart DateTime?
   cron          String?
   datapointId   String

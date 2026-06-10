@@ -55,7 +55,7 @@ export class JobsService {
     const job = await this.prisma.job.create({
       data: {
         ...rest,
-        definition: rest.definition ?? '',
+
         scheduleStart: rest.scheduleStart ? new Date(rest.scheduleStart) : undefined,
         datapoint: { connect: { id: datapointId } },
       },

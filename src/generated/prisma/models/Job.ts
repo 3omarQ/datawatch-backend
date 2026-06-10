@@ -27,7 +27,6 @@ export type AggregateJob = {
 export type JobMinAggregateOutputType = {
   id: string | null
   status: $Enums.JobStatus | null
-  definition: string | null
   scheduleStart: Date | null
   cron: string | null
   datapointId: string | null
@@ -44,7 +43,6 @@ export type JobMinAggregateOutputType = {
 export type JobMaxAggregateOutputType = {
   id: string | null
   status: $Enums.JobStatus | null
-  definition: string | null
   scheduleStart: Date | null
   cron: string | null
   datapointId: string | null
@@ -61,7 +59,6 @@ export type JobMaxAggregateOutputType = {
 export type JobCountAggregateOutputType = {
   id: number
   status: number
-  definition: number
   scheduleStart: number
   cron: number
   datapointId: number
@@ -80,7 +77,6 @@ export type JobCountAggregateOutputType = {
 export type JobMinAggregateInputType = {
   id?: true
   status?: true
-  definition?: true
   scheduleStart?: true
   cron?: true
   datapointId?: true
@@ -97,7 +93,6 @@ export type JobMinAggregateInputType = {
 export type JobMaxAggregateInputType = {
   id?: true
   status?: true
-  definition?: true
   scheduleStart?: true
   cron?: true
   datapointId?: true
@@ -114,7 +109,6 @@ export type JobMaxAggregateInputType = {
 export type JobCountAggregateInputType = {
   id?: true
   status?: true
-  definition?: true
   scheduleStart?: true
   cron?: true
   datapointId?: true
@@ -204,7 +198,6 @@ export type JobGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs
 export type JobGroupByOutputType = {
   id: string
   status: $Enums.JobStatus
-  definition: string
   scheduleStart: Date | null
   cron: string | null
   datapointId: string
@@ -242,7 +235,6 @@ export type JobWhereInput = {
   NOT?: Prisma.JobWhereInput | Prisma.JobWhereInput[]
   id?: Prisma.StringFilter<"Job"> | string
   status?: Prisma.EnumJobStatusFilter<"Job"> | $Enums.JobStatus
-  definition?: Prisma.StringFilter<"Job"> | string
   scheduleStart?: Prisma.DateTimeNullableFilter<"Job"> | Date | string | null
   cron?: Prisma.StringNullableFilter<"Job"> | string | null
   datapointId?: Prisma.StringFilter<"Job"> | string
@@ -261,7 +253,6 @@ export type JobWhereInput = {
 export type JobOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   status?: Prisma.SortOrder
-  definition?: Prisma.SortOrder
   scheduleStart?: Prisma.SortOrderInput | Prisma.SortOrder
   cron?: Prisma.SortOrderInput | Prisma.SortOrder
   datapointId?: Prisma.SortOrder
@@ -283,7 +274,6 @@ export type JobWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.JobWhereInput[]
   NOT?: Prisma.JobWhereInput | Prisma.JobWhereInput[]
   status?: Prisma.EnumJobStatusFilter<"Job"> | $Enums.JobStatus
-  definition?: Prisma.StringFilter<"Job"> | string
   scheduleStart?: Prisma.DateTimeNullableFilter<"Job"> | Date | string | null
   cron?: Prisma.StringNullableFilter<"Job"> | string | null
   datapointId?: Prisma.StringFilter<"Job"> | string
@@ -302,7 +292,6 @@ export type JobWhereUniqueInput = Prisma.AtLeast<{
 export type JobOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   status?: Prisma.SortOrder
-  definition?: Prisma.SortOrder
   scheduleStart?: Prisma.SortOrderInput | Prisma.SortOrder
   cron?: Prisma.SortOrderInput | Prisma.SortOrder
   datapointId?: Prisma.SortOrder
@@ -325,7 +314,6 @@ export type JobScalarWhereWithAggregatesInput = {
   NOT?: Prisma.JobScalarWhereWithAggregatesInput | Prisma.JobScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Job"> | string
   status?: Prisma.EnumJobStatusWithAggregatesFilter<"Job"> | $Enums.JobStatus
-  definition?: Prisma.StringWithAggregatesFilter<"Job"> | string
   scheduleStart?: Prisma.DateTimeNullableWithAggregatesFilter<"Job"> | Date | string | null
   cron?: Prisma.StringNullableWithAggregatesFilter<"Job"> | string | null
   datapointId?: Prisma.StringWithAggregatesFilter<"Job"> | string
@@ -342,7 +330,6 @@ export type JobScalarWhereWithAggregatesInput = {
 export type JobCreateInput = {
   id?: string
   status?: $Enums.JobStatus
-  definition?: string
   scheduleStart?: Date | string | null
   cron?: string | null
   createdAt?: Date | string
@@ -360,7 +347,6 @@ export type JobCreateInput = {
 export type JobUncheckedCreateInput = {
   id?: string
   status?: $Enums.JobStatus
-  definition?: string
   scheduleStart?: Date | string | null
   cron?: string | null
   datapointId: string
@@ -378,7 +364,6 @@ export type JobUncheckedCreateInput = {
 export type JobUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumJobStatusFieldUpdateOperationsInput | $Enums.JobStatus
-  definition?: Prisma.StringFieldUpdateOperationsInput | string
   scheduleStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cron?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -396,7 +381,6 @@ export type JobUpdateInput = {
 export type JobUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumJobStatusFieldUpdateOperationsInput | $Enums.JobStatus
-  definition?: Prisma.StringFieldUpdateOperationsInput | string
   scheduleStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cron?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   datapointId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -414,7 +398,6 @@ export type JobUncheckedUpdateInput = {
 export type JobCreateManyInput = {
   id?: string
   status?: $Enums.JobStatus
-  definition?: string
   scheduleStart?: Date | string | null
   cron?: string | null
   datapointId: string
@@ -431,7 +414,6 @@ export type JobCreateManyInput = {
 export type JobUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumJobStatusFieldUpdateOperationsInput | $Enums.JobStatus
-  definition?: Prisma.StringFieldUpdateOperationsInput | string
   scheduleStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cron?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -447,7 +429,6 @@ export type JobUpdateManyMutationInput = {
 export type JobUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumJobStatusFieldUpdateOperationsInput | $Enums.JobStatus
-  definition?: Prisma.StringFieldUpdateOperationsInput | string
   scheduleStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cron?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   datapointId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -474,7 +455,6 @@ export type JobOrderByRelationAggregateInput = {
 export type JobCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   status?: Prisma.SortOrder
-  definition?: Prisma.SortOrder
   scheduleStart?: Prisma.SortOrder
   cron?: Prisma.SortOrder
   datapointId?: Prisma.SortOrder
@@ -491,7 +471,6 @@ export type JobCountOrderByAggregateInput = {
 export type JobMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   status?: Prisma.SortOrder
-  definition?: Prisma.SortOrder
   scheduleStart?: Prisma.SortOrder
   cron?: Prisma.SortOrder
   datapointId?: Prisma.SortOrder
@@ -508,7 +487,6 @@ export type JobMaxOrderByAggregateInput = {
 export type JobMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   status?: Prisma.SortOrder
-  definition?: Prisma.SortOrder
   scheduleStart?: Prisma.SortOrder
   cron?: Prisma.SortOrder
   datapointId?: Prisma.SortOrder
@@ -602,7 +580,6 @@ export type JobUpdateOneRequiredWithoutExecutionsNestedInput = {
 export type JobCreateWithoutDatapointInput = {
   id?: string
   status?: $Enums.JobStatus
-  definition?: string
   scheduleStart?: Date | string | null
   cron?: string | null
   createdAt?: Date | string
@@ -619,7 +596,6 @@ export type JobCreateWithoutDatapointInput = {
 export type JobUncheckedCreateWithoutDatapointInput = {
   id?: string
   status?: $Enums.JobStatus
-  definition?: string
   scheduleStart?: Date | string | null
   cron?: string | null
   createdAt?: Date | string
@@ -665,7 +641,6 @@ export type JobScalarWhereInput = {
   NOT?: Prisma.JobScalarWhereInput | Prisma.JobScalarWhereInput[]
   id?: Prisma.StringFilter<"Job"> | string
   status?: Prisma.EnumJobStatusFilter<"Job"> | $Enums.JobStatus
-  definition?: Prisma.StringFilter<"Job"> | string
   scheduleStart?: Prisma.DateTimeNullableFilter<"Job"> | Date | string | null
   cron?: Prisma.StringNullableFilter<"Job"> | string | null
   datapointId?: Prisma.StringFilter<"Job"> | string
@@ -682,7 +657,6 @@ export type JobScalarWhereInput = {
 export type JobCreateWithoutExecutionsInput = {
   id?: string
   status?: $Enums.JobStatus
-  definition?: string
   scheduleStart?: Date | string | null
   cron?: string | null
   createdAt?: Date | string
@@ -699,7 +673,6 @@ export type JobCreateWithoutExecutionsInput = {
 export type JobUncheckedCreateWithoutExecutionsInput = {
   id?: string
   status?: $Enums.JobStatus
-  definition?: string
   scheduleStart?: Date | string | null
   cron?: string | null
   datapointId: string
@@ -732,7 +705,6 @@ export type JobUpdateToOneWithWhereWithoutExecutionsInput = {
 export type JobUpdateWithoutExecutionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumJobStatusFieldUpdateOperationsInput | $Enums.JobStatus
-  definition?: Prisma.StringFieldUpdateOperationsInput | string
   scheduleStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cron?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -749,7 +721,6 @@ export type JobUpdateWithoutExecutionsInput = {
 export type JobUncheckedUpdateWithoutExecutionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumJobStatusFieldUpdateOperationsInput | $Enums.JobStatus
-  definition?: Prisma.StringFieldUpdateOperationsInput | string
   scheduleStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cron?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   datapointId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -766,7 +737,6 @@ export type JobUncheckedUpdateWithoutExecutionsInput = {
 export type JobCreateManyDatapointInput = {
   id?: string
   status?: $Enums.JobStatus
-  definition?: string
   scheduleStart?: Date | string | null
   cron?: string | null
   createdAt?: Date | string
@@ -782,7 +752,6 @@ export type JobCreateManyDatapointInput = {
 export type JobUpdateWithoutDatapointInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumJobStatusFieldUpdateOperationsInput | $Enums.JobStatus
-  definition?: Prisma.StringFieldUpdateOperationsInput | string
   scheduleStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cron?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -799,7 +768,6 @@ export type JobUpdateWithoutDatapointInput = {
 export type JobUncheckedUpdateWithoutDatapointInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumJobStatusFieldUpdateOperationsInput | $Enums.JobStatus
-  definition?: Prisma.StringFieldUpdateOperationsInput | string
   scheduleStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cron?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -816,7 +784,6 @@ export type JobUncheckedUpdateWithoutDatapointInput = {
 export type JobUncheckedUpdateManyWithoutDatapointInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumJobStatusFieldUpdateOperationsInput | $Enums.JobStatus
-  definition?: Prisma.StringFieldUpdateOperationsInput | string
   scheduleStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cron?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -863,7 +830,6 @@ export type JobCountOutputTypeCountExecutionsArgs<ExtArgs extends runtime.Types.
 export type JobSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   status?: boolean
-  definition?: boolean
   scheduleStart?: boolean
   cron?: boolean
   datapointId?: boolean
@@ -883,7 +849,6 @@ export type JobSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = ru
 export type JobSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   status?: boolean
-  definition?: boolean
   scheduleStart?: boolean
   cron?: boolean
   datapointId?: boolean
@@ -901,7 +866,6 @@ export type JobSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extension
 export type JobSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   status?: boolean
-  definition?: boolean
   scheduleStart?: boolean
   cron?: boolean
   datapointId?: boolean
@@ -919,7 +883,6 @@ export type JobSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extension
 export type JobSelectScalar = {
   id?: boolean
   status?: boolean
-  definition?: boolean
   scheduleStart?: boolean
   cron?: boolean
   datapointId?: boolean
@@ -933,7 +896,7 @@ export type JobSelectScalar = {
   notifyOnFail?: boolean
 }
 
-export type JobOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "status" | "definition" | "scheduleStart" | "cron" | "datapointId" | "createdAt" | "updatedAt" | "extractorType" | "outputFormat" | "webhookUrl" | "notifyOnFinish" | "notifyOnDiff" | "notifyOnFail", ExtArgs["result"]["job"]>
+export type JobOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "status" | "scheduleStart" | "cron" | "datapointId" | "createdAt" | "updatedAt" | "extractorType" | "outputFormat" | "webhookUrl" | "notifyOnFinish" | "notifyOnDiff" | "notifyOnFail", ExtArgs["result"]["job"]>
 export type JobInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   datapoint?: boolean | Prisma.DatapointDefaultArgs<ExtArgs>
   executions?: boolean | Prisma.Job$executionsArgs<ExtArgs>
@@ -955,7 +918,6 @@ export type $JobPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     status: $Enums.JobStatus
-    definition: string
     scheduleStart: Date | null
     cron: string | null
     datapointId: string
@@ -1394,7 +1356,6 @@ export interface Prisma__JobClient<T, Null = never, ExtArgs extends runtime.Type
 export interface JobFieldRefs {
   readonly id: Prisma.FieldRef<"Job", 'String'>
   readonly status: Prisma.FieldRef<"Job", 'JobStatus'>
-  readonly definition: Prisma.FieldRef<"Job", 'String'>
   readonly scheduleStart: Prisma.FieldRef<"Job", 'DateTime'>
   readonly cron: Prisma.FieldRef<"Job", 'String'>
   readonly datapointId: Prisma.FieldRef<"Job", 'String'>
