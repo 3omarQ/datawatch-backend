@@ -16,10 +16,14 @@ describe('JobExecutionsService', () => {
       findMany: jest.fn(),
     },
     result: { create: jest.fn() },
+    targetUrl: { updateMany: jest.fn() },
     log: { create: jest.fn() },
   };
   const eventEmitter = { emit: jest.fn() };
-  const notificationsGateway = { pushLogToUser: jest.fn() };
+  const notificationsGateway = {
+    pushLogToUser: jest.fn(),
+    pushExecutionCompletedToUser: jest.fn(),
+  };
   const jobAccess = {
     getJobOwnerId: jest.fn(),
     getExecutionOwnerId: jest.fn(),
@@ -74,6 +78,14 @@ describe('JobExecutionsService', () => {
       where: { id: 'execution-1' },
       data: { status: ExecutionStatus.DONE, finishedAt: expect.any(Date) },
     });
+    expect(prisma.targetUrl.updateMany).toHaveBeenCalledWith({
+      where: { datapoints: { some: { jobs: { some: { id: 'job-1' } } } } },
+      data: { status: 'ACTIVE' },
+    });
+    expect(notificationsGateway.pushExecutionCompletedToUser).toHaveBeenCalledWith(
+      'user-1',
+      { jobId: 'job-1', executionId: 'execution-1', status: ExecutionStatus.DONE },
+    );
     expect(eventEmitter.emit).toHaveBeenCalledWith(
       EXECUTION_DONE,
       expect.objectContaining({ jobId: 'job-1', executionId: 'execution-1' }),
@@ -99,6 +111,10 @@ describe('JobExecutionsService', () => {
       where: { id: 'execution-1' },
       data: { status: ExecutionStatus.FAILED, finishedAt: expect.any(Date) },
     });
+    expect(notificationsGateway.pushExecutionCompletedToUser).toHaveBeenCalledWith(
+      'user-1',
+      { jobId: 'job-1', executionId: 'execution-1', status: ExecutionStatus.FAILED },
+    );
     expect(eventEmitter.emit).toHaveBeenCalledWith(
       EXECUTION_FAILED,
       expect.objectContaining({ reason: 'selector missing' }),

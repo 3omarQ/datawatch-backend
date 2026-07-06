@@ -16,10 +16,6 @@ export class CreateJobDto {
   @IsNotEmpty()
   datapointId!: string;
 
-  // @IsString()
-  // //@IsNotEmpty()
-  // definition?: string;
-
   @IsString()
   @IsOptional()
   cron?: string;

@@ -58,7 +58,7 @@ describe('JobsService', () => {
     expect(prisma.job.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
-          definition: '',
+          
           datapoint: { connect: { id: 'datapoint-1' } },
         }),
       }),

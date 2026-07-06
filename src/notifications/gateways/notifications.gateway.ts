@@ -48,6 +48,15 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
       .emit('execution:log', payload);
   }
 
+  pushExecutionCompletedToUser(
+    userId: string,
+    payload: { jobId: string; executionId: string; status: 'DONE' | 'FAILED' },
+  ) {
+    this.server
+      .to(this.userRoom(userId))
+      .emit('execution:completed', payload);
+  }
+
   private extractUserId(client: Socket): string | null {
     try {
       const token =

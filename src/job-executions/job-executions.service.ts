@@ -1,7 +1,7 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '../prisma/prisma.service';
-import { ExecutionStatus, LogLevel } from '../generated/prisma/enums';
+import { ExecutionStatus, LogLevel, UrlStatus } from '../generated/prisma/enums';
 import { EXECUTION_DONE, EXECUTION_FAILED, EXECUTION_DIFF } from '../events/event-names';
 import { ExecutionDoneEvent, ExecutionFailedEvent, ExecutionDiffEvent } from 'src/events/executions.events';
 import { NotificationsGateway } from 'src/notifications/gateways/notifications.gateway';
@@ -74,9 +74,15 @@ export class JobExecutionsService {
     await this.saveResult(executionId, result);
     await this.saveLog(executionId, 'INFO', EXECUTION_DONE_LOG(result.length));
     await this.markDone(executionId);
+    await this.markTargetActive(jobId);
     this.logger.log(`[${jobId}] Execution ${executionId} marked DONE`);
 
     const userId = await this.jobAccess.getJobOwnerId(jobId);
+    this.notificationsGateway.pushExecutionCompletedToUser(userId, {
+      jobId,
+      executionId,
+      status: ExecutionStatus.DONE,
+    });
     await this.detectAndEmitDiff(jobId, executionId, userId);
     this.eventEmitter.emit(EXECUTION_DONE, new ExecutionDoneEvent(jobId, executionId, userId));
   }
@@ -87,6 +93,11 @@ export class JobExecutionsService {
     this.logger.error(`[${jobId}] Execution ${executionId} marked FAILED — ${errorMessage}`);
 
     const userId = await this.jobAccess.getJobOwnerId(jobId);
+    this.notificationsGateway.pushExecutionCompletedToUser(userId, {
+      jobId,
+      executionId,
+      status: ExecutionStatus.FAILED,
+    });
     this.eventEmitter.emit(EXECUTION_FAILED, new ExecutionFailedEvent(jobId, executionId, userId, errorMessage));
   }
 
@@ -166,6 +177,13 @@ export class JobExecutionsService {
     return this.prisma.jobExecution.update({
       where: { id: executionId },
       data: { status: ExecutionStatus.FAILED, finishedAt: new Date() },
+    });
+  }
+
+  private async markTargetActive(jobId: string) {
+    return this.prisma.targetUrl.updateMany({
+      where: { datapoints: { some: { jobs: { some: { id: jobId } } } } },
+      data: { status: UrlStatus.ACTIVE },
     });
   }
 
