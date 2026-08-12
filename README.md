@@ -27,6 +27,21 @@ A NestJS-based backend that handles scheduling of scraping jobs via BullMQ, runn
 - **Auth**: Passport.js (JWT, Google, GitHub OAuth), bcrypt
 - **Mailing**: Nodemailer
 
+## For french speakers/readers
+### Report
+This was a graduation project (PFE), so here's a [link to the pdf report](https://omarkassar.me/reports/datawatch_report.pdf)
+
+### Main design diagrams:
+
+Database schema
+<img align="center" width="600" alt="database schema" src="https://github.com/user-attachments/assets/ae5c6e8b-6fb1-4b2c-8890-c9f3d3f558d9" />
+
+Class diagram
+<img width="8192" height="6166" alt="class diagram" src="https://github.com/user-attachments/assets/7656341e-484f-46b5-b584-3dc5056b5dc3" />
+
+
+
+
 ## Quickstart
 
 1. **Install dependencies:**
