@@ -5,7 +5,6 @@ import {
   IsEnum,
   IsOptional,
   IsBoolean,
-  IsDateString,
   IsDate,
 } from 'class-validator';
 import { ExtractorType, OutputFormat } from '../../generated/prisma/enums';

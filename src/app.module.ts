@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { TargetUrlsModule } from './target-urls/target-urls.module';
@@ -23,7 +25,7 @@ import { PreviewModule } from './preview/preview.module';
     AuthModule,
     UsersModule,
     TargetUrlsModule,
-    DatapointsModule, 
+    DatapointsModule,
     JobsModule,
     LogsModule,
     ResultsModule,
@@ -38,8 +40,8 @@ import { PreviewModule } from './preview/preview.module';
     EventEmitterModule.forRoot(),
     NotificationsModule,
     PreviewModule,
-
   ],
-  
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}
